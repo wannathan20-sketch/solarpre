@@ -1,0 +1,73 @@
+{
+  "method": "chronological_time_split",
+  "description": "Models train only on rows at or before train_end and evaluate on future rows.",
+  "train_end": "2024-09-30 23:59:59",
+  "results": {
+    "solar": {
+      "target": "SOLAR_POWER_MW",
+      "train_end": "2024-09-30 23:59:59",
+      "train_rows": 39456,
+      "test_rows": 13248,
+      "test_start": "2024-10-01 00:00:00",
+      "test_end": "2024-12-31 23:00:00",
+      "features": [
+        "HOUR",
+        "MONTH",
+        "IF_DAYTIME",
+        "DAY_OF_WEEK",
+        "IS_WEEKEND",
+        "SEASON",
+        "REGION_CODE",
+        "LATITUDE",
+        "LONGITUDE",
+        "CAPACITY_MW",
+        "AMBIENT_TEMPERATURE",
+        "RELATIVE_HUMIDITY",
+        "WIND_SPEED",
+        "IRRADIATION",
+        "MODULE_TEMPERATURE",
+        "MODULE_AMBIENT_DIFF",
+        "TEMPERATURE_IRRADIATION",
+        "IRRADIATION_CAPACITY",
+        "WIND_IRRADIATION"
+      ],
+      "model": {
+        "rows": 13248,
+        "mae": 0.30129733060423525,
+        "rmse": 0.8307414210990858,
+        "mape_percent": 1.1967651113301119
+      }
+    },
+    "load": {
+      "target": "REGIONAL_LOAD_MW",
+      "train_end": "2024-09-30 23:59:59",
+      "train_rows": 39456,
+      "test_rows": 13248,
+      "test_start": "2024-10-01 00:00:00",
+      "test_end": "2024-12-31 23:00:00",
+      "features": [
+        "HOUR",
+        "MONTH",
+        "IF_DAYTIME",
+        "DAY_OF_WEEK",
+        "IS_WEEKEND",
+        "SEASON",
+        "REGION_CODE",
+        "LATITUDE",
+        "LONGITUDE",
+        "PEAK_LOAD_MW",
+        "AMBIENT_TEMPERATURE",
+        "RELATIVE_HUMIDITY",
+        "WIND_SPEED",
+        "IRRADIATION",
+        "TEMPERATURE_IRRADIATION"
+      ],
+      "model": {
+        "rows": 13248,
+        "mae": 422.142982006664,
+        "rmse": 516.5910034074653,
+        "mape_percent": 10.302323809010689
+      }
+    }
+  }
+}

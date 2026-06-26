@@ -34,6 +34,7 @@ solar-main/
 |   |-- solar_predictor.py                   # 模型封装和特征工程
 |   |-- train_regional_model.py              # 区域光伏模型训练
 |   |-- train_load_model.py                  # 区域负荷模型训练
+|   |-- evaluate_regional_timesplit.py       # 区域模型时间切分评估
 |   |-- train_caiso_backtest.py              # CAISO 真实数据回测
 |   |-- train_model.py                       # 早期单电站模型训练脚本
 |   |-- data_sources/nasa_power.py           # NASA POWER 数据获取
@@ -85,6 +86,7 @@ NASA POWER 使用的主要字段：
 | --- | --- | ---: | --- |
 | `solar/data/south_china_solar_power.csv` | 2024-01-01 至 2024-12-31 | 52,704 | 区域光伏功率数据 |
 | `solar/data/south_china_load_power.csv` | 2024-01-01 至 2024-12-31 | 52,704 | 区域发电-负荷数据 |
+| `solar/data/regional_timesplit_metrics.json` | 2024-10-01 至 2024-12-31 | - | 区域模型时间切分评估 |
 
 其中 `SOLAR_POWER_MW` 和 `REGIONAL_LOAD_MW` 都是基于公开气象数据、时间特征和透明公式生成的基准标签，不是电网企业实测调度数据。
 
@@ -102,6 +104,26 @@ NASA POWER 使用的主要字段：
 ### 区域负荷预测
 
 负荷模型同样使用 XGBoost Regressor，目标变量是 `REGIONAL_LOAD_MW`。它在时间和天气特征之外加入了区域峰值负荷假设，用来估算不同区域在不同时间和天气条件下的负荷需求。
+
+### 时间切分评估
+
+为了避免只展示随机交叉验证，项目增加了按时间切分的区域模型评估脚本：
+
+```bash
+python3 solar/evaluate_regional_timesplit.py \
+  --kind both \
+  --train-end 2024-09-30 \
+  --output solar/data/regional_timesplit_metrics.json
+```
+
+当前报告使用 2024-01-01 至 2024-09-30 训练，使用 2024-10-01 至 2024-12-31 测试：
+
+| 模型 | 训练行数 | 测试行数 | MAE | RMSE | MAPE |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 区域光伏功率 | 39,456 | 13,248 | 0.30 MW | 0.83 MW | 1.20% |
+| 区域负荷需求 | 39,456 | 13,248 | 422.14 MW | 516.59 MW | 10.30% |
+
+这组指标仍然基于公式生成的区域标签，因此不能当作真实电网精度证明；它的作用是说明模型评估方式已经从随机打散验证，升级为更接近预测场景的“用过去预测未来”。
 
 ### 储能调度建议
 

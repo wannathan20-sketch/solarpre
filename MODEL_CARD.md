@@ -124,6 +124,15 @@ Current regional model result:
 
 These scores are expected because both current targets are formula-derived from the same time and weather drivers. They should be treated as baseline pipeline validation scores, not proof of real-world dispatch forecasting accuracy.
 
+Chronological regional time-split evaluation:
+
+- Train window: 2024-01-01 to 2024-09-30
+- Test window: 2024-10-01 to 2024-12-31
+- Solar output: MAE 0.30 MW, RMSE 0.83 MW, MAPE 1.20%
+- Regional load: MAE 422.14 MW, RMSE 516.59 MW, MAPE 10.30%
+
+The time-split report is saved in `solar/data/regional_timesplit_metrics.json`. These metrics are more honest than shuffled cross-validation for a forecasting workflow, but they still evaluate formula-derived regional labels rather than measured utility data.
+
 The third-stage storage layer is not evaluated as a learned model. It is an explainable decision rule intended to demonstrate how PV and load predictions can feed into storage dispatch assistance.
 
 ## Limitations
