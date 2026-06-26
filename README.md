@@ -1,334 +1,231 @@
-# Regional Renewable Generation Forecasting and Grid Dispatch Dashboard
+# 区域新能源发电预测与电网调度辅助平台
 
-区域新能源发电预测与电网调度辅助平台
+这是一个面向新能源功率预测、电网调度运行和数据分析岗位的个人机器学习项目。项目最初是单个光伏电站的发电量预测，当前版本已经扩展为区域级新能源发电预测、负荷需求预测、储能充放电建议和真实公开电网数据回测。
 
-A personal machine learning web project tailored for regional power-grid recruiting scenarios. The current version uses NASA POWER meteorological and solar irradiance data for representative South China and Southwest China cities, estimates regional photovoltaic generation, adds a weather-driven regional load baseline, and serves grid dispatch assistance through a FastAPI dashboard.
+项目后端使用 FastAPI，模型使用 XGBoost，前端是轻量级 HTML/CSS/JavaScript 仪表盘。部署目标为 Zeabur。
 
-## Why This Version
+## 项目做什么
 
-The original project predicted a single solar plant's daily yield from Kaggle plant operation data. This version shifts the story toward grid-company work:
+- 使用 NASA POWER 小时级气象和太阳辐照数据，构建华南/西南代表城市的区域光伏发电数据集。
+- 基于辐照度、温度、湿度、风速、装机容量等特征，训练区域光伏发电功率模型。
+- 基于时间、天气和区域峰值负荷假设，构建区域负荷需求基准并训练负荷预测模型。
+- 在光伏预测和负荷预测之上，加入规则型储能调度层，给出充电、放电或待机建议。
+- 接入 CAISO OASIS 公开电网数据，完成 2025 年历史回测和 2026 年已发布时段滚动评估。
+- 提供 Web 页面和 API，用于区域选择、气象输入、功率预测、发电负荷平衡分析、储能策略展示和 CAISO 回测可视化。
 
-- Regional renewable power forecasting
-- Weather-driven solar output and load-demand estimation
-- Generation-load-storage analytics foundation
-- Dispatch-support dashboard prototype
+## 技术栈
 
-## What It Does
-
-- Fetches hourly NASA POWER weather and solar irradiance data for Guangdong, Guangxi, Yunnan, Guizhou, and Hainan representative cities.
-- Builds a regional solar output dataset with demo installed capacity assumptions.
-- Trains an XGBoost model to estimate hourly regional photovoltaic output in MW.
-- Builds a second-stage regional load-demand baseline from time, weather, humidity, wind, and regional peak-load assumptions.
-- Trains a second XGBoost model to estimate hourly regional load demand in MW.
-- Adds a third-stage rule-based storage dispatch layer for charge/discharge/standby recommendations.
-- Adds a CAISO real public grid-data validation path for 2025 historical backtesting and 2026 rolling evaluation.
-- Exposes FastAPI endpoints for regional PV prediction, load prediction, generation-load balance, storage dispatch, CAISO backtest summaries, feature importance, trend charts, heatmaps, load-balance plots, and storage strategy plots.
-- Serves a lightweight web UI for manual grid dispatch-support scenarios.
-
-## Tech Stack
-
-| Layer | Tools |
+| 模块 | 技术 |
 | --- | --- |
-| Data source | NASA POWER hourly API |
-| Backend API | FastAPI, Uvicorn |
-| Machine learning | XGBoost, scikit-learn, pandas, NumPy, joblib |
-| Visualization | Matplotlib, Seaborn |
-| Frontend | HTML, CSS, vanilla JavaScript |
-| Deployment | Zeabur |
+| 数据源 | NASA POWER、CAISO OASIS |
+| 后端服务 | FastAPI、Uvicorn |
+| 机器学习 | XGBoost、scikit-learn、pandas、NumPy、joblib |
+| 可视化 | Matplotlib、Seaborn |
+| 前端 | HTML、CSS、原生 JavaScript |
+| 部署 | Zeabur、Nixpacks |
 
-## Project Structure
+## 项目结构
 
 ```text
 solar-main/
 |-- solar/
-|   |-- app.py                              # FastAPI app and API routes
-|   |-- regions.py                          # Representative regional grid scenarios
-|   |-- solar_predictor.py                  # Model wrapper and feature engineering
-|   |-- train_regional_model.py             # Trains the regional solar model
-|   |-- train_load_model.py                 # Trains the second-stage regional load model
-|   |-- train_model.py                      # Legacy Kaggle plant training script
-|   |-- data_sources/nasa_power.py          # NASA POWER data fetcher
-|   |-- data_sources/caiso_oasis.py         # CAISO OASIS real grid data fetcher
-|   |-- data_sources/caiso_batch_download.py # Resumable monthly CAISO downloader
-|   |-- data/south_china_solar_power.csv    # Generated regional dataset
-|   |-- data/south_china_load_power.csv     # Generated second-stage generation-load dataset
-|   |-- data/caiso_sample_with_forecast.csv # Sample real CAISO load/solar/wind data
-|   |-- south_china_solar_model.joblib      # Regional model artifact
-|   |-- south_china_load_model.joblib       # Regional load model artifact
-|   |-- solar_model.joblib                  # Legacy plant model artifact
-|   |-- static/index.html                   # Web UI
-|   `-- requirements.txt                    # Python dependencies
-|-- MODEL_CARD.md                           # Model and data limitations
-|-- DEPLOYMENT.md                           # Deployment notes
-|-- legacy/spring-boot-shell/               # Early Spring Boot experiment, not required
-|-- .python-version                         # Python version hint for Zeabur/Nixpacks
-|-- nixpacks.toml                           # Zeabur/Nixpacks deployment config
+|   |-- app.py                               # FastAPI 应用和 API 路由
+|   |-- regions.py                           # 区域代表城市与容量/负荷/储能假设
+|   |-- solar_predictor.py                   # 模型封装和特征工程
+|   |-- train_regional_model.py              # 区域光伏模型训练
+|   |-- train_load_model.py                  # 区域负荷模型训练
+|   |-- train_caiso_backtest.py              # CAISO 真实数据回测
+|   |-- train_model.py                       # 早期单电站模型训练脚本
+|   |-- data_sources/nasa_power.py           # NASA POWER 数据获取
+|   |-- data_sources/caiso_oasis.py          # CAISO OASIS 数据获取
+|   |-- data_sources/caiso_batch_download.py # CAISO 按月断点下载脚本
+|   |-- data/south_china_solar_power.csv     # 区域光伏发电数据集
+|   |-- data/south_china_load_power.csv      # 区域发电-负荷数据集
+|   |-- data/caiso_2024_2026_generation_load.csv
+|   |-- data/caiso_2025_predictions.csv
+|   |-- data/caiso_2026_predictions.csv
+|   |-- south_china_solar_model.joblib       # 区域光伏模型
+|   |-- south_china_load_model.joblib        # 区域负荷模型
+|   |-- solar_model.joblib                   # 早期单电站模型
+|   |-- static/index.html                    # Web 仪表盘
+|   `-- requirements.txt                     # Python 依赖
+|-- DEPLOYMENT.md                            # 部署说明
+|-- MODEL_CARD.md                            # 模型说明和限制
+|-- DESIGN_ITERATIONS.md                     # 前端设计迭代记录
+|-- legacy/spring-boot-shell/                # 早期 Spring Boot 实验代码，当前不参与部署
+|-- .python-version                          # Zeabur/Nixpacks Python 版本提示
+|-- nixpacks.toml                            # Zeabur 部署配置
+|-- deploy.sh                                # GitHub/部署准备脚本
 `-- requirements.txt
 ```
 
-The production path is the Python/FastAPI app in `solar/`. The app loads `south_china_solar_model.joblib` for renewable output forecasting and `south_china_load_model.joblib` for the second-stage load-demand module when present. It falls back to the legacy plant model only if the regional solar model is missing.
+生产路径是 `solar/` 下的 Python/FastAPI 应用。应用优先加载 `south_china_solar_model.joblib` 和 `south_china_load_model.joblib`。如果区域光伏模型不存在，才会退回到早期的单电站模型。
 
-## Regional Data
+## 区域与数据
 
-Representative regions:
+当前区域样本覆盖 6 个代表城市：
 
-- Guangdong - Guangzhou
-- Guangdong - Shenzhen
-- Guangxi - Nanning
-- Yunnan - Kunming
-- Guizhou - Guiyang
-- Hainan - Haikou
+- 广东广州
+- 广东深圳
+- 广西南宁
+- 云南昆明
+- 贵州贵阳
+- 海南海口
 
-NASA POWER parameters:
+NASA POWER 使用的主要字段：
 
-- `T2M`: temperature at 2 meters
-- `RH2M`: relative humidity at 2 meters
-- `WS2M`: wind speed at 2 meters
-- `ALLSKY_SFC_SW_DWN`: all-sky surface shortwave downward irradiance
+- `T2M`：2 米气温
+- `RH2M`：2 米相对湿度
+- `WS2M`：2 米风速
+- `ALLSKY_SFC_SW_DWN`：地表短波辐照度
 
-The generated solar dataset has 52,704 hourly rows for 2024 across 6 representative regions. The target `SOLAR_POWER_MW` is estimated with a simple PV baseline formula using irradiance, module temperature, performance ratio, and demo installed capacity. It is a portfolio baseline, not official utility operating data.
+已生成的区域数据：
 
-## Stage 2: Load Forecast and Generation-Load Balance
-
-The second stage adds a regional load-demand module so the dashboard can answer a more grid-oriented question: after expected PV output, how much net load still needs to be supplied by the grid and other flexible resources?
-
-The generated load target `REGIONAL_LOAD_MW` is a transparent demo baseline derived from:
-
-- Hour-of-day load shape
-- Weekday/weekend demand pattern
-- Summer cooling and winter heating effects
-- Temperature, humidity, and wind-speed stress factors
-- Demo regional peak-load assumptions
-
-This is not measured utility load data. It is a recruiting-oriented prototype that demonstrates the generation-load modeling pipeline. If real SCADA, EMS, AMI, or dispatch load data becomes available, the target column can be replaced while keeping the data pipeline, model service, and dashboard structure.
-
-## Stage 3: Storage Dispatch Assistance
-
-The third stage adds a storage dispatch assistance layer on top of the PV and load predictions. It uses transparent storage assumptions for each representative region:
-
-- Storage power rating in MW
-- Storage energy capacity in MWh
-- Current state of charge entered from the dashboard
-- Operating reserve and maximum charge bounds
-
-The decision layer returns:
-
-- Recommended action: charge, discharge, or standby
-- Recommended storage power
-- Net load before and after storage
-- Peak-shaving contribution
-- SOC change
-- Curtailment/consumption risk hint
-- A dispatch-oriented explanation
-
-This is a heuristic dispatch-assistance layer, not a production storage control algorithm. It is designed to show how renewable generation forecasting and load forecasting can feed into storage charge/discharge decisions.
-
-## Public Real-Data Extension: CAISO
-
-The project now includes a CAISO OASIS data connector for real public grid data. CAISO is useful for portfolio validation because it publishes actual load, day-ahead load forecasts, actual solar/wind generation, and day-ahead solar/wind forecasts.
-
-The connector can download:
-
-- `LOAD_MW`: actual system load
-- `LOAD_FORECAST_MW`: day-ahead load forecast
-- `SOLAR_MW`: actual solar generation
-- `SOLAR_FORECAST_MW`: day-ahead solar forecast
-- `WIND_MW`: actual wind generation
-- `WIND_FORECAST_MW`: day-ahead wind forecast
-- `NET_LOAD_MW`: load minus solar and wind
-- `SOLAR_SHARE_PERCENT`: solar generation share of load
-
-Fetch a one-day sample:
-
-```bash
-python3 solar/data_sources/caiso_oasis.py \
-  --start 2024-06-01 \
-  --end 2024-06-01 \
-  --output solar/data/caiso_sample_with_forecast.csv
-```
-
-Fetch a longer backtest window:
-
-```bash
-python3 solar/data_sources/caiso_batch_download.py \
-  --start 2024-01-01 \
-  --end 2024-12-31 \
-  --output-dir solar/data/caiso_monthly_2024 \
-  --combined-output solar/data/caiso_2024_generation_load.csv \
-  --chunk-days 7
-```
-
-Recommended backtest framing:
-
-- Train on historical CAISO actual load and solar/wind generation.
-- Use day-ahead CAISO forecasts as a baseline.
-- Compare model predictions against actual values using MAE, RMSE, and MAPE.
-- Analyze net-load ramps and storage charge/discharge opportunities.
-
-Note: CAISO actual solar values may contain small negative night-time values due to market/reporting adjustments. Keep them for data authenticity, or clip them to zero when training a physical solar generation model.
-
-Train on pre-2025 data and backtest against real 2025 data:
-
-```bash
-python3 solar/data_sources/caiso_batch_download.py \
-  --start 2024-01-01 \
-  --end 2025-12-31 \
-  --output-dir solar/data/caiso_monthly_2024_2025 \
-  --combined-output solar/data/caiso_2024_2025_generation_load.csv \
-  --chunk-days 7
-
-python3 solar/train_caiso_backtest.py \
-  --input solar/data/caiso_2024_2025_generation_load.csv \
-  --train-start 2024-01-01 \
-  --train-end 2024-12-31 \
-  --predict-start 2025-01-01 \
-  --predict-end 2025-12-31 \
-  --output solar/data/caiso_2025_predictions.csv \
-  --metrics-output solar/data/caiso_2025_backtest_metrics.json
-```
-
-Train through 2025 and predict available 2026 rows:
-
-```bash
-python3 solar/data_sources/caiso_batch_download.py \
-  --start 2024-01-01 \
-  --end 2026-06-01 \
-  --output-dir solar/data/caiso_monthly_2024_2026 \
-  --combined-output solar/data/caiso_2024_2026_generation_load.csv \
-  --chunk-days 7
-
-python3 solar/train_caiso_backtest.py \
-  --input solar/data/caiso_2024_2026_generation_load.csv \
-  --train-start 2024-01-01 \
-  --train-end 2025-12-31 \
-  --predict-start 2026-01-01 \
-  --predict-end 2026-06-01 \
-  --output solar/data/caiso_2026_predictions.csv \
-  --metrics-output solar/data/caiso_2026_metrics.json
-```
-
-For future dates beyond the latest actual data, CAISO day-ahead forecast columns are only available once CAISO publishes them. To forecast farther into the future, add weather forecast features from Open-Meteo or another forecast provider.
-
-CAISO note: the `SLD_REN_FCST` OASIS report used here provides separated solar and wind actual/forecast data reliably for recent years. If you need a longer pre-2024 history, use CAISO's historical wind/solar summary or EIA hourly grid data, but those sources may use different renewable aggregation rules.
-
-### CAISO Backtest Results
-
-The current checked-in CAISO real-data run includes:
-
-| File | Window | Rows | Purpose |
+| 文件 | 时间范围 | 行数 | 说明 |
 | --- | --- | ---: | --- |
-| `solar/data/caiso_2024_2025_generation_load.csv` | 2024-01-01 to 2025-12-31 | 17,544 | Training + 2025 backtest dataset |
-| `solar/data/caiso_2025_predictions.csv` | 2025-01-01 to 2025-12-31 | 8,760 | 2025 hourly predictions and actuals |
-| `solar/data/caiso_2025_backtest_metrics.json` | 2025 full year | - | 2025 backtest metrics |
-| `solar/data/caiso_2024_2026_generation_load.csv` | 2024-01-01 to 2026-06-01 | 21,191 | Training + 2026 rolling evaluation dataset |
-| `solar/data/caiso_2026_predictions.csv` | 2026-01-01 to 2026-06-01 | 3,647 | 2026 hourly predictions and actuals available so far |
-| `solar/data/caiso_2026_metrics.json` | 2026 year-to-date | - | 2026 rolling evaluation metrics |
+| `solar/data/south_china_solar_power.csv` | 2024-01-01 至 2024-12-31 | 52,704 | 区域光伏功率数据 |
+| `solar/data/south_china_load_power.csv` | 2024-01-01 至 2024-12-31 | 52,704 | 区域发电-负荷数据 |
 
-2025 backtest, trained on 2024 and tested against real 2025 CAISO actuals:
+其中 `SOLAR_POWER_MW` 和 `REGIONAL_LOAD_MW` 都是基于公开气象数据、时间特征和透明公式生成的基准标签，不是电网企业实测调度数据。
 
-| Target | Model MAE | Model RMSE | Model MAPE | CAISO day-ahead baseline MAE | Baseline RMSE | Baseline MAPE |
+## 模型与调度逻辑
+
+### 区域光伏预测
+
+区域光伏模型使用 XGBoost Regressor，目标变量是 `SOLAR_POWER_MW`。主要特征包括：
+
+- 时间特征：小时、月份、星期、周末、季节、是否白天
+- 区域特征：区域编码、经纬度、装机容量
+- 天气特征：气温、湿度、风速、辐照度、组件温度
+- 交互特征：温度差、辐照度与容量、风速与辐照度等
+
+### 区域负荷预测
+
+负荷模型同样使用 XGBoost Regressor，目标变量是 `REGIONAL_LOAD_MW`。它在时间和天气特征之外加入了区域峰值负荷假设，用来估算不同区域在不同时间和天气条件下的负荷需求。
+
+### 储能调度建议
+
+储能层不是机器学习模型，而是一组可解释规则。输入包括：
+
+- 光伏预测功率
+- 负荷预测功率
+- 当前 SOC
+- 区域储能功率和容量假设
+- 当前小时和负荷水平
+
+输出包括充电/放电/待机动作、储能功率、储能后净负荷、削峰贡献、下一时刻 SOC 和文字说明。
+
+## CAISO 真实数据回测
+
+为了避免项目只停留在公式生成数据上，仓库加入了 CAISO OASIS 公开数据路线。CAISO 数据包含实际负荷、日前负荷预测、实际太阳能/风电出力和日前新能源预测。
+
+当前仓库中保留了两组回测结果：
+
+| 文件 | 时间范围 | 行数 | 用途 |
+| --- | --- | ---: | --- |
+| `solar/data/caiso_2024_2025_generation_load.csv` | 2024-01-01 至 2025-12-31 | 17,544 | 训练 + 2025 回测 |
+| `solar/data/caiso_2025_predictions.csv` | 2025-01-01 至 2025-12-31 | 8,760 | 2025 预测结果 |
+| `solar/data/caiso_2024_2026_generation_load.csv` | 2024-01-01 至 2026-06-01 | 21,191 | 训练 + 2026 滚动评估 |
+| `solar/data/caiso_2026_predictions.csv` | 2026-01-01 至 2026-06-01 | 3,647 | 2026 已发布时段预测 |
+
+2025 年回测结果，使用 2024 年数据训练，在 2025 年真实数据上评估：
+
+| 目标 | 模型 MAE | 模型 RMSE | 模型 MAPE | CAISO 日前基线 MAE | 基线 RMSE | 基线 MAPE |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Load MW | 736.46 | 1,050.73 | 2.80% | 1,897.64 | 2,910.73 | 7.31% |
-| Solar MW | 506.64 | 918.96 | 164.09% | 748.80 | 1,467.58 | 85.63% |
-| Solar MW, active generation only | 894.27 | 1,237.25 | 18.61% | 1,324.17 | 1,976.45 | 23.14% |
-| Wind MW | 250.70 | 338.99 | 47.84% | 242.53 | 336.24 | 38.32% |
-| Net Load MW | 846.17 | 1,178.54 | 6.39% | - | - | - |
+| 负荷 MW | 736.46 | 1,050.73 | 2.80% | 1,897.64 | 2,910.73 | 7.31% |
+| 太阳能 MW | 506.64 | 918.96 | 164.09% | 748.80 | 1,467.58 | 85.63% |
+| 太阳能 MW，白天有效出力 | 894.27 | 1,237.25 | 18.61% | 1,324.17 | 1,976.45 | 23.14% |
+| 风电 MW | 250.70 | 338.99 | 47.84% | 242.53 | 336.24 | 38.32% |
+| 净负荷 MW | 846.17 | 1,178.54 | 6.39% | - | - | - |
 
-2026 rolling evaluation, trained on 2024-2025 and evaluated on available 2026 actuals through 2026-06-01:
+2026 年滚动评估，使用 2024-2025 年数据训练，在 2026-01-01 至 2026-06-01 的已发布真实数据上评估：
 
-| Target | Model MAE | Model RMSE | Model MAPE | CAISO day-ahead baseline MAE | Baseline RMSE | Baseline MAPE |
+| 目标 | 模型 MAE | 模型 RMSE | 模型 MAPE | CAISO 日前基线 MAE | 基线 RMSE | 基线 MAPE |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Load MW | 1,032.77 | 1,612.05 | 4.07% | 2,429.99 | 3,781.53 | 9.68% |
-| Solar MW | 725.17 | 1,345.20 | 81.26% | 1,215.06 | 2,389.52 | 72.37% |
-| Solar MW, active generation only | 1,386.05 | 1,879.39 | 16.41% | 2,329.69 | 3,338.85 | 24.76% |
-| Wind MW | 244.25 | 340.04 | 68.86% | 250.83 | 363.62 | 60.11% |
-| Net Load MW | 1,098.19 | 1,700.47 | 8.80% | - | - | - |
+| 负荷 MW | 1,032.77 | 1,612.05 | 4.07% | 2,429.99 | 3,781.53 | 9.68% |
+| 太阳能 MW | 725.17 | 1,345.20 | 81.26% | 1,215.06 | 2,389.52 | 72.37% |
+| 太阳能 MW，白天有效出力 | 1,386.05 | 1,879.39 | 16.41% | 2,329.69 | 3,338.85 | 24.76% |
+| 风电 MW | 244.25 | 340.04 | 68.86% | 250.83 | 363.62 | 60.11% |
+| 净负荷 MW | 1,098.19 | 1,700.47 | 8.80% | - | - | - |
 
-Interpretation:
+太阳能全时段 MAPE 偏高，主要是夜间和低出力时段分母接近 0。展示项目时，更适合引用“白天有效出力”指标。
 
-- Load forecasting is the strongest part of the current real-data pipeline; the model improves substantially over the CAISO day-ahead baseline on both 2025 and 2026 windows.
-- Solar forecasting improves MAE and RMSE over the day-ahead baseline. Full-period solar MAPE is inflated by night-time and low-generation hours where the denominator is close to zero, so the active-generation rows are the better interview metric.
-- Wind forecasting is close to the day-ahead baseline and slightly worse by MAPE. This is expected because wind is more volatile and the current model only uses calendar plus CAISO forecast features.
-- Net-load prediction is now measurable against real data and can directly support the storage charge/discharge analysis.
+## 本地运行
 
-## Local Setup
-
-Use Python 3.11 if possible.
-
-On macOS, install the OpenMP runtime required by XGBoost:
+建议使用 Python 3.11。macOS 上运行 XGBoost 可能需要先安装 OpenMP：
 
 ```bash
 brew install libomp
 ```
+
+安装依赖并启动服务：
 
 ```bash
 cd /Users/wanna/solar_pred/solar-main
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r solar/requirements.txt
-```
 
-Run the app:
-
-```bash
 cd solar
 uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-Open:
+打开：
 
 ```text
 http://localhost:8000
 ```
 
-## Rebuild Data and Model
+常用检查地址：
 
-Fetch NASA POWER data:
-
-```bash
-cd /Users/wanna/solar_pred/solar-main
-python3 solar/data_sources/nasa_power.py --start 20240101 --end 20241231
+```text
+http://localhost:8000/health
+http://localhost:8000/docs
 ```
 
-Fetch CAISO real public grid data:
+## Zeabur 部署
+
+仓库已经包含 Zeabur/Nixpacks 配置：
+
+- `.python-version`：指定 Python 3.11
+- `nixpacks.toml`：安装 `solar/requirements.txt`，并通过 Uvicorn 启动 `solar/app.py`
+
+Zeabur 部署步骤：
+
+1. 将仓库推送到 GitHub。
+2. 在 Zeabur 创建项目。
+3. 添加 GitHub 仓库作为服务。
+4. 让 Zeabur 使用仓库根目录下的 `nixpacks.toml`。
+5. 部署完成后访问 Zeabur 分配的域名。
+
+启动命令由 `nixpacks.toml` 指定：
 
 ```bash
-python3 solar/data_sources/caiso_oasis.py --start 2024-06-01 --end 2024-06-01
+cd solar && uvicorn app:app --host 0.0.0.0 --port ${PORT}
 ```
 
-Train the regional model:
+## API 概览
 
-```bash
-python3 solar/train_regional_model.py
-```
-
-Train the second-stage regional load model:
-
-```bash
-python3 solar/train_load_model.py
-```
-
-## API Overview
-
-| Endpoint | Method | Purpose |
+| 接口 | 方法 | 说明 |
 | --- | --- | --- |
-| `/` | GET | Web interface |
-| `/health` | GET | Service, model mode, and row-count health check |
-| `/regions` | GET | Representative regional scenario metadata |
-| `/predict_region` | POST | Regional solar output prediction |
-| `/predict_load` | POST | Regional load-demand prediction |
-| `/predict_dispatch` | POST | Combined PV generation, load demand, net load, and dispatch hint |
-| `/predict_storage_dispatch` | POST | Storage charge/discharge decision based on PV, load, and SOC |
-| `/features` | GET | Model feature list |
-| `/caiso/backtests` | GET | CAISO 2025/2026 real-data backtest summary |
-| `/feature_importance` | GET | Feature importance values |
-| `/plot/timeseries` | GET | Regional actual-estimate vs model prediction trend |
-| `/plot/heatmap` | GET | Regional solar output heatmap |
-| `/plot/load_balance` | GET | PV generation vs load demand and net-load chart |
-| `/plot/storage_strategy` | GET | PV, load, net-load-after-storage, storage power, and SOC chart |
-| `/plot/caiso_backtest?period=2025&target=net_load` | GET | CAISO actual-vs-predicted backtest chart |
+| `/` | GET | Web 页面 |
+| `/health` | GET | 服务状态、模型状态和数据行数 |
+| `/regions` | GET | 区域代表城市列表 |
+| `/predict` | POST | 通用预测接口，兼容早期单电站模型和批量输入 |
+| `/predict_region` | POST | 区域光伏发电功率预测 |
+| `/predict_load` | POST | 区域负荷需求预测 |
+| `/predict_dispatch` | POST | 发电、负荷、净负荷和调度建议 |
+| `/predict_storage_dispatch` | POST | 储能充放电策略 |
+| `/features` | GET | 当前模型特征列表 |
+| `/caiso/backtests` | GET | CAISO 2025/2026 回测摘要 |
+| `/feature_importance` | GET | 特征重要性 |
+| `/plot/timeseries` | GET | 区域光伏趋势图 |
+| `/plot/heatmap` | GET | 区域光伏热力图 |
+| `/plot/load_balance` | GET | 光伏-负荷平衡图 |
+| `/plot/storage_strategy` | GET | 储能策略图 |
+| `/plot/caiso_backtest?period=2025&target=net_load` | GET | CAISO 真实值与预测值对比图 |
 
-Example regional prediction request:
+示例请求：
 
 ```json
 {
@@ -342,18 +239,7 @@ Example regional prediction request:
 }
 ```
 
-Example response:
-
-```json
-{
-  "status": "success",
-  "mode": "regional_solar",
-  "prediction_mw": 279.27,
-  "target": "SOLAR_POWER_MW"
-}
-```
-
-Example dispatch response fields:
+示例返回：
 
 ```json
 {
@@ -365,31 +251,62 @@ Example dispatch response fields:
     "net_load_mw": 6531.15,
     "solar_share_percent": 4.10,
     "supply_level": "low",
-    "ramp_risk": "low",
-    "recommendation": "PV contribution is limited..."
+    "ramp_risk": "low"
   },
   "storage_dispatch": {
     "action": "charge",
     "storage_power_mw": 69.82,
     "net_load_after_storage_mw": 6600.97,
-    "peak_shaving_mw": 0.0,
-    "next_soc_percent": 60.04,
-    "curtailment_risk": "low"
+    "next_soc_percent": 60.04
   }
 }
 ```
 
-## Current Limitations
+## 重新生成数据和模型
 
-- `SOLAR_POWER_MW` is estimated from public weather/irradiance data and a transparent PV baseline formula, not measured utility dispatch data.
-- `REGIONAL_LOAD_MW` is also a transparent weather/time baseline, not measured utility load data.
-- Region capacities, peak-load values, and storage ratings are demo assumptions for portfolio modeling.
-- The current PV and load targets are formula-derived; production use would require real measured PV output, load, and dispatch context data where licensing permits.
-- The storage dispatch layer is rule-based and intended for explainable prototype analysis, not automatic production control.
-- The UI is intentionally lightweight and does not include scenario history, batch upload, or confidence intervals yet.
+重新拉取 NASA POWER 数据：
 
-## Next Improvements
+```bash
+python3 solar/data_sources/nasa_power.py --start 20240101 --end 20241231
+```
 
-- Replace the demo load baseline with public benchmark load data or licensed measured regional load data.
-- Replace rule-based storage recommendations with constrained optimization, model predictive control, or probabilistic dispatch under uncertainty.
-- Add Pydantic request schemas and automated API tests.
+训练区域光伏模型：
+
+```bash
+python3 solar/train_regional_model.py
+```
+
+训练区域负荷模型：
+
+```bash
+python3 solar/train_load_model.py
+```
+
+重新运行 CAISO 回测：
+
+```bash
+python3 solar/train_caiso_backtest.py \
+  --input solar/data/caiso_2024_2025_generation_load.csv \
+  --train-start 2024-01-01 \
+  --train-end 2024-12-31 \
+  --predict-start 2025-01-01 \
+  --predict-end 2025-12-31 \
+  --output solar/data/caiso_2025_predictions.csv \
+  --metrics-output solar/data/caiso_2025_backtest_metrics.json
+```
+
+## 当前限制
+
+- 区域光伏和区域负荷的训练标签主要来自公开气象数据和透明基准公式，不是电网企业实测数据。
+- 区域装机容量、峰值负荷和储能参数是演示假设。
+- NASA POWER 是网格化公开气象数据，不等同于电站现场传感器数据。
+- 储能策略是规则型建议，不是生产级优化调度或安全约束调度。
+- CAISO 回测用于证明公开真实数据验证路线，但它代表的是 CAISO 系统，不代表华南区域电网。
+
+## 后续可改进方向
+
+- 引入更贴近业务场景的公开负荷数据或授权实测数据。
+- 增加预测区间、不确定性评估和异常天气场景分析。
+- 将储能规则升级为带约束的优化模型或模型预测控制。
+- 增加 Pydantic 请求模型和自动化 API 测试。
+- 增加批量场景上传、预测结果导出和历史方案管理。
