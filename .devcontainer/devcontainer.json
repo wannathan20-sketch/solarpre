@@ -1,0 +1,28 @@
+{
+  "name": "Solar Project (Stable)",
+  // 只用微软官方做好的 Java 镜像，保证 100% 能启动
+  "image": "mcr.microsoft.com/devcontainers/java:17-jdk-bullseye",
+  "features": {
+    // 留空！什么脚本都别跑，防止网络报错
+  },
+  // 关键策略：等容器启动成功后，再在内部用 apt 和 pip 安装 Python
+  // 这样就算网慢，也可以重试，不会导致容器进不去
+  "updateContentCommand": "apt-get update && apt-get install -y python3 python3-pip python3-venv maven",
+  // 安装完 Python 后，自动安装 requirements.txt
+  // 加上 --break-system-packages 是为了兼容新版 Debian 系统
+  "postCreateCommand": "pip3 install --no-cache-dir --break-system-packages -r requirements.txt",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "Pivotal.vscode-spring-boot",
+        "ms-python.python"
+      ]
+    }
+  },
+  "forwardPorts": [
+    8080,
+    8000
+  ],
+  "remoteUser": "root"
+}

@@ -1,0 +1,37 @@
+1. 启动服务：
+    python app.py
+服务将运行在 http://localhost:8000
+2. 接口文档：
+    FastAPI 自动生成交互式文档：
+        Swagger UI：http://localhost:8000/docs（可直接在网页测试接口）
+        ReDoc：http://localhost:8000/redoc
+3. 前端调用示例（JavaScript）：
+    // 预测请求示例
+    async function predictSolarYield() {
+        const inputData = {
+            "data": [
+                {
+                    "DATE_TIME": "2023-01-01 09:00:00",
+                    "PLANT_ID": 10001,
+                    "DC_POWER": 150.2,
+                    "AC_POWER": 135.1,
+                    "AMBIENT_TEMPERATURE": 26.5,
+                    "MODULE_TEMPERATURE": 32.0,
+                    "IRRADIATION": 600.0
+                    // 补充其他特征列...
+                }
+            ]
+        };
+
+        const response = await fetch("http://localhost:8000/predict", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(inputData)
+        });
+
+        const result = await response.json();
+        console.log("预测结果：", result.predictions);
+    }
+关键注意事项
+    数据格式一致性：前端输入的数据必须包含模型所需的所有特征列（可通过/features接口查询），且格式需与训练数据一致（如DATE_TIME为字符串格式）。
+    错误处理：API 已包含基础错误处理，前端可根据返回的status和detail提示用户。

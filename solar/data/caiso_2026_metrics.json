@@ -1,0 +1,82 @@
+{
+  "features": [
+    "HOUR",
+    "MONTH",
+    "DAY_OF_WEEK",
+    "IS_WEEKEND",
+    "SEASON",
+    "LOAD_FORECAST_MW",
+    "SOLAR_FORECAST_MW",
+    "WIND_FORECAST_MW"
+  ],
+  "train_start": "2024-01-01 00:00:00",
+  "train_end": "2025-12-31 23:59:59",
+  "predict_start": "2026-01-01 00:00:00",
+  "predict_end": "2026-06-01 23:59:59",
+  "targets": {
+    "LOAD_MW": {
+      "train_rows": 17543,
+      "actual_rows": 3647,
+      "model": {
+        "mae": 1032.7715288250618,
+        "rmse": 1612.0530230243792,
+        "mape_percent": 4.0724794761595176
+      },
+      "day_ahead_baseline": {
+        "mae": 2429.9941074856047,
+        "rmse": 3781.525540730938,
+        "mape_percent": 9.682909868939072
+      }
+    },
+    "SOLAR_MW": {
+      "train_rows": 17511,
+      "actual_rows": 3640,
+      "model": {
+        "mae": 725.1689203635493,
+        "rmse": 1345.1980546492146,
+        "mape_percent": 81.25982530523436
+      },
+      "active_generation_model": {
+        "mae": 1386.0548838704183,
+        "rmse": 1879.3918884771645,
+        "mape_percent": 16.410256073127538,
+        "minimum_actual_mw": 100.0,
+        "rows": 1864
+      },
+      "day_ahead_baseline": {
+        "mae": 1215.0595784780219,
+        "rmse": 2389.5210950768806,
+        "mape_percent": 72.36781385675648
+      },
+      "active_generation_day_ahead_baseline": {
+        "mae": 2329.693526083691,
+        "rmse": 3338.8532328424576,
+        "mape_percent": 24.761807478000335,
+        "minimum_actual_mw": 100.0,
+        "rows": 1864
+      }
+    },
+    "WIND_MW": {
+      "train_rows": 17510,
+      "actual_rows": 3640,
+      "model": {
+        "mae": 244.2510259572045,
+        "rmse": 340.03623049894907,
+        "mape_percent": 68.85709289620787
+      },
+      "day_ahead_baseline": {
+        "mae": 250.82571615384614,
+        "rmse": 363.61577194817676,
+        "mape_percent": 60.11159378724782
+      }
+    },
+    "NET_LOAD_MW": {
+      "actual_rows": 3640,
+      "model": {
+        "mae": 1098.1899662847054,
+        "rmse": 1700.4672689799233,
+        "mape_percent": 8.798372857724274
+      }
+    }
+  }
+}
