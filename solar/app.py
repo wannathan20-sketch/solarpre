@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 import pandas as pd
 
 from regions import REGION_BY_ID, SOUTHERN_GRID_REGIONS
+from schemas import LegacyPredictionRequest, RegionalPredictionRequest, payload_to_dict
 from solar_predictor import Solar_Predictor
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -209,6 +210,7 @@ def plot_response():
 
 
 def build_regional_input(payload):
+    payload = payload_to_dict(payload)
     region_id = payload.get("region_id")
     if region_id not in REGION_BY_ID:
         raise ValueError("Unknown region_id")
@@ -392,12 +394,10 @@ async def get_caiso_backtests():
 
 
 @app.post("/predict")
-async def predict(payload: dict):
+async def predict(payload: LegacyPredictionRequest):
     try:
-        if "data" not in payload or not isinstance(payload["data"], list):
-            raise ValueError("Request body must include a 'data' array")
-
-        input_df = pd.DataFrame(payload["data"])
+        payload_data = payload_to_dict(payload)
+        input_df = pd.DataFrame(payload_data["data"])
         predictions = model.predict(input_df)
         return {
             "status": "success",
@@ -419,7 +419,7 @@ async def get_features():
 
 
 @app.post("/predict_region")
-async def predict_region(payload: dict):
+async def predict_region(payload: RegionalPredictionRequest):
     if MODEL_MODE != "regional_solar":
         raise HTTPException(status_code=400, detail="Regional solar model is not available. Run train_regional_model.py first.")
 
@@ -438,7 +438,7 @@ async def predict_region(payload: dict):
 
 
 @app.post("/predict_load")
-async def predict_load(payload: dict):
+async def predict_load(payload: RegionalPredictionRequest):
     if load_model is None:
         raise HTTPException(status_code=400, detail="Regional load model is not available. Run train_load_model.py first.")
 
@@ -457,13 +457,14 @@ async def predict_load(payload: dict):
 
 
 @app.post("/predict_dispatch")
-async def predict_dispatch(payload: dict):
+async def predict_dispatch(payload: RegionalPredictionRequest):
     if MODEL_MODE != "regional_solar":
         raise HTTPException(status_code=400, detail="Regional solar model is not available. Run train_regional_model.py first.")
     if load_model is None:
         raise HTTPException(status_code=400, detail="Regional load model is not available. Run train_load_model.py first.")
 
     try:
+        payload_data = payload_to_dict(payload)
         region, input_df = build_regional_input(payload)
         solar_mw = float(model.predict(input_df)[0])
         load_mw = float(load_model.predict(input_df)[0])
@@ -472,8 +473,8 @@ async def predict_dispatch(payload: dict):
             solar_mw,
             load_mw,
             region,
-            payload["DATE_TIME"],
-            payload.get("storage_soc_percent", 50.0),
+            payload_data["DATE_TIME"],
+            payload_data.get("storage_soc_percent", 50.0),
         )
         return {
             "status": "success",
@@ -489,13 +490,14 @@ async def predict_dispatch(payload: dict):
 
 
 @app.post("/predict_storage_dispatch")
-async def predict_storage_dispatch(payload: dict):
+async def predict_storage_dispatch(payload: RegionalPredictionRequest):
     if MODEL_MODE != "regional_solar":
         raise HTTPException(status_code=400, detail="Regional solar model is not available. Run train_regional_model.py first.")
     if load_model is None:
         raise HTTPException(status_code=400, detail="Regional load model is not available. Run train_load_model.py first.")
 
     try:
+        payload_data = payload_to_dict(payload)
         region, input_df = build_regional_input(payload)
         solar_mw = float(model.predict(input_df)[0])
         load_mw = float(load_model.predict(input_df)[0])
@@ -503,8 +505,8 @@ async def predict_storage_dispatch(payload: dict):
             solar_mw,
             load_mw,
             region,
-            payload["DATE_TIME"],
-            payload.get("storage_soc_percent", 50.0),
+            payload_data["DATE_TIME"],
+            payload_data.get("storage_soc_percent", 50.0),
         )
         return {
             "status": "success",
