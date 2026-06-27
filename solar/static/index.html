@@ -326,6 +326,7 @@
             const rows = [
                 [t('load'), targets?.load?.model],
                 [t('solar'), targets?.solar?.model],
+                [`${t('solar')} > 100 MW`, targets?.solar?.active_generation_model],
                 [t('wind'), targets?.wind?.model],
                 [t('netLoad'), targets?.net_load?.model],
             ];

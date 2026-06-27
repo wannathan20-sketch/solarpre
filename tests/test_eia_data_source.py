@@ -1,6 +1,7 @@
 from pathlib import Path
 import sys
 import unittest
+from urllib.parse import parse_qs, urlparse
 
 import pandas as pd
 
@@ -9,10 +10,24 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 SOLAR_DIR = ROOT_DIR / "solar"
 sys.path.insert(0, str(SOLAR_DIR))
 
-from data_sources.eia_open_data import normalize_region_data, normalize_fuel_type_data  # noqa: E402
+from data_sources.eia_open_data import build_eia_url, normalize_region_data, normalize_fuel_type_data  # noqa: E402
 
 
 class EiaDataSourceTest(unittest.TestCase):
+    def test_build_eia_url_preserves_multiple_facet_values(self):
+        url = build_eia_url(
+            "region-data",
+            api_key="test-key",
+            respondent="CISO",
+            start="2021-01-01T00",
+            end="2021-01-01T05",
+            extra_facets={"type": ["D", "DF"]},
+        )
+
+        query = parse_qs(urlparse(url).query)
+
+        self.assertEqual(query["facets[type][]"], ["D", "DF"])
+
     def test_region_data_normalizes_load_and_forecast_rows(self):
         raw = pd.DataFrame(
             [

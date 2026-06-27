@@ -35,24 +35,37 @@ def require_api_key(api_key=None):
     return key
 
 
-def eia_request(endpoint, api_key, respondent, start, end, extra_facets=None, offset=0, length=PAGE_SIZE):
-    query = {
-        "api_key": api_key,
-        "frequency": "hourly",
-        "data[0]": "value",
-        "facets[respondent][]": respondent,
-        "start": start,
-        "end": end,
-        "sort[0][column]": "period",
-        "sort[0][direction]": "asc",
-        "offset": str(offset),
-        "length": str(length),
-    }
+def build_eia_url(endpoint, api_key, respondent, start, end, extra_facets=None, offset=0, length=PAGE_SIZE):
+    query = [
+        ("api_key", api_key),
+        ("frequency", "hourly"),
+        ("data[0]", "value"),
+        ("facets[respondent][]", respondent),
+        ("start", start),
+        ("end", end),
+        ("sort[0][column]", "period"),
+        ("sort[0][direction]", "asc"),
+        ("offset", str(offset)),
+        ("length", str(length)),
+    ]
     for facet_name, values in (extra_facets or {}).items():
         for value in values:
-            query[f"facets[{facet_name}][]"] = value
+            query.append((f"facets[{facet_name}][]", value))
 
-    url = f"{EIA_API_BASE}/{endpoint}/data/?{urlencode(query, doseq=True)}"
+    return f"{EIA_API_BASE}/{endpoint}/data/?{urlencode(query)}"
+
+
+def eia_request(endpoint, api_key, respondent, start, end, extra_facets=None, offset=0, length=PAGE_SIZE):
+    url = build_eia_url(
+        endpoint,
+        api_key=api_key,
+        respondent=respondent,
+        start=start,
+        end=end,
+        extra_facets=extra_facets,
+        offset=offset,
+        length=length,
+    )
     request = Request(url, headers={"User-Agent": "solar-pred-eia-client/1.0"})
     with urlopen(request, timeout=60) as response:
         return json.load(response)

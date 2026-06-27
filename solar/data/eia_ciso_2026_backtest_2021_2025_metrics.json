@@ -1,0 +1,63 @@
+{
+  "features": [
+    "HOUR",
+    "MONTH",
+    "DAY_OF_WEEK",
+    "IS_WEEKEND",
+    "SEASON",
+    "LOAD_FORECAST_MW"
+  ],
+  "train_start": "2021-01-01 00:00:00",
+  "train_end": "2025-12-31 23:59:59",
+  "predict_start": "2026-01-01 00:00:00",
+  "predict_end": "2026-06-01 23:59:59",
+  "targets": {
+    "LOAD_MW": {
+      "train_rows": 43716,
+      "actual_rows": 3625,
+      "model": {
+        "mae": 1735.1063612607759,
+        "rmse": 2473.9402285551273,
+        "mape_percent": 6.843458459053438
+      },
+      "day_ahead_baseline": {
+        "mae": 2448.0766896551722,
+        "rmse": 3816.164663547728,
+        "mape_percent": 9.71845743125042
+      }
+    },
+    "SOLAR_MW": {
+      "train_rows": 43727,
+      "actual_rows": 3625,
+      "model": {
+        "mae": 1616.4401400416061,
+        "rmse": 2712.6285355506443,
+        "mape_percent": 352.5298819226087
+      },
+      "active_generation_model": {
+        "mae": 3019.2906477050947,
+        "rmse": 3789.868288633025,
+        "mape_percent": 49.81004561040299,
+        "minimum_actual_mw": 100.0,
+        "rows": 1846
+      }
+    },
+    "WIND_MW": {
+      "train_rows": 43727,
+      "actual_rows": 3625,
+      "model": {
+        "mae": 1058.3111607413457,
+        "rmse": 1269.938522187403,
+        "mape_percent": 161.51928936264804
+      }
+    },
+    "NET_LOAD_MW": {
+      "actual_rows": 3625,
+      "model": {
+        "mae": 1616.9281475619612,
+        "rmse": 2103.3302051939477,
+        "mape_percent": 11.847850814041875
+      }
+    }
+  }
+}
