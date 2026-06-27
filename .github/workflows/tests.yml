@@ -32,9 +32,10 @@ jobs:
         run: |
           PYTHONPYCACHEPREFIX=/tmp/solar_pred_pycache python -m py_compile \
             solar/app.py \
-            solar/schemas.py \
-            solar/storage_dispatch.py \
-            solar/evaluate_regional_timesplit.py \
+            solar/data_sources/eia_open_data.py \
+            solar/train_eia_backtest.py \
+            solar/grid_backtest.py \
             tests/test_api_contract.py \
+            tests/test_eia_data_source.py \
             tests/test_storage_dispatch.py \
             tests/test_time_split_evaluation.py

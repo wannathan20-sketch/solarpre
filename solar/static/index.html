@@ -4,25 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>区域新能源发电预测与电网调度辅助平台</title>
+    <title>EIA 真实电网数据回测平台</title>
     <style>
         :root {
-            --primary-color: #1e3a8a;
-            --primary-light: #3b82f6;
-            --accent-color: #f59e0b;
-            --accent-light: #fbbf24;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --danger-color: #ef4444;
-            --light-bg: #f0f9ff;
-            --card-bg: #ffffff;
-            --text-color: #1f2937;
-            --text-light: #6b7280;
-            --border-color: #e5e7eb;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --bg: #f6f8fb;
+            --surface: #ffffff;
+            --text: #172033;
+            --muted: #627086;
+            --line: #d8e0ea;
+            --accent: #1769aa;
+            --accent-2: #0f8b8d;
+            --warn: #a35f00;
         }
 
         * {
@@ -30,1240 +22,440 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-            background: linear-gradient(to bottom, #f0f9ff 0%, #e0f2fe 100%);
-            background-attachment: fixed;
             margin: 0;
-            padding: 0;
-            color: var(--text-color);
-            line-height: 1.6;
             min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
         }
 
-        .navbar {
-            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-            color: white;
-            padding: 1.5rem 2rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+        header {
+            border-bottom: 1px solid var(--line);
+            background: var(--surface);
         }
 
-        .navbar-content {
-            max-width: 1400px;
+        .topbar {
+            max-width: 1180px;
             margin: 0 auto;
+            padding: 22px 24px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 1rem;
+            gap: 20px;
         }
 
-        .navbar h1 {
+        h1 {
             margin: 0;
-            font-size: 1.75rem;
+            font-size: 24px;
             font-weight: 700;
-            color: white;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            letter-spacing: 0;
         }
 
-        .language-toggle {
-            flex: 0 0 auto;
-            border: 1px solid rgba(255, 255, 255, 0.55);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.14);
-            color: white;
+        .subtitle {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .lang {
+            border: 1px solid var(--line);
+            background: var(--surface);
+            color: var(--text);
+            border-radius: 6px;
+            padding: 8px 12px;
             cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 700;
-            padding: 0.55rem 0.85rem;
-            min-width: 76px;
-            transition: background 0.2s, border-color 0.2s;
         }
 
-        .language-toggle:hover {
-            background: rgba(255, 255, 255, 0.24);
-            border-color: rgba(255, 255, 255, 0.8);
+        main {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 24px;
         }
 
-        .container {
-            max-width: 1400px;
-            margin: 2rem auto;
-            padding: 0 1.5rem 2rem;
+        .status-grid {
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 2rem;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
         }
 
-        @media (min-width: 768px) {
-            .container {
-                grid-template-columns: 1fr 1.5fr;
-                align-items: start;
-            }
-        }
-
-        .card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            padding: 2rem;
-            transition: all 0.3s ease;
-            border: 1px solid #e5e7eb;
-        }
-
-        .card:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .card-header {
-            margin-bottom: 1.5rem;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 1rem;
-        }
-
-        .card-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #1e40af;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-color);
-            letter-spacing: 0.025em;
-        }
-
-        input[type="text"],
-        input[type="number"],
-        input[type="datetime-local"],
-        select {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid #e5e7eb;
+        .metric {
+            background: var(--surface);
+            border: 1px solid var(--line);
             border-radius: 8px;
-            font-size: 0.95rem;
-            transition: all 0.2s;
-            box-sizing: border-box;
-            background: #f9fafb;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: #3b82f6;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .btn {
-            display: inline-block;
-            width: 100%;
-            padding: 0.875rem 1.5rem;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-align: center;
-            text-decoration: none;
-            box-sizing: border-box;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-
-        .btn:hover::before {
-            width: 300px;
-            height: 300px;
-        }
-
-        .btn:active {
-            transform: scale(0.98);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            margin-top: 1rem;
-            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
-        }
-
-        .btn-primary:hover {
-            box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
-            transform: translateY(-1px);
-        }
-
-        .right-column {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
-
-        .toolbar {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 0.75rem;
-        }
-
-        .btn-tool {
-            font-size: 0.9rem;
-            padding: 0.75rem 1rem;
-            background: white;
-            border: 2px solid #e5e7eb;
-            color: #374151;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        }
-
-        .btn-tool:hover {
-            background: #3b82f6;
-            border-color: #3b82f6;
-            color: white;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
-        }
-
-        .result-area {
-            min-height: 200px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .placeholder-text {
-            color: var(--text-light);
-            font-size: 1rem;
-            text-align: center;
-            padding: 2rem;
-        }
-
-        @media (max-width: 768px) {
-            .navbar h1 {
-                font-size: 1.25rem;
-            }
-
-            .navbar {
-                padding: 1rem;
-            }
-
-            .language-toggle {
-                font-size: 0.8rem;
-                min-width: 64px;
-                padding: 0.45rem 0.65rem;
-            }
-
-            .container {
-                padding: 0 1rem 1rem;
-                gap: 1.5rem;
-            }
-
-            .card {
-                padding: 1.5rem;
-            }
-
-            .toolbar {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .prediction-box {
-            text-align: center;
-            padding: 2.5rem;
-            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-            border-radius: 12px;
-            color: var(--text-color);
-            width: 100%;
-            box-sizing: border-box;
-            animation: fadeIn 0.5s ease, slideUp 0.5s ease;
-            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.1);
-            border: 2px solid #10b981;
-        }
-
-        .prediction-value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--success-color);
-            margin: 0.5rem 0;
-        }
-
-        .metric-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-            width: 100%;
-        }
-
-        .metric-card {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 1rem;
-            text-align: center;
+            padding: 14px;
+            min-height: 82px;
         }
 
         .metric-label {
-            color: var(--text-light);
-            font-size: 0.82rem;
-            font-weight: 600;
+            color: var(--muted);
+            font-size: 12px;
         }
 
         .metric-value {
-            color: #0f172a;
-            font-size: 1.6rem;
+            margin-top: 8px;
+            font-size: 20px;
             font-weight: 700;
-            margin-top: 0.35rem;
         }
 
-        .dispatch-advice {
-            width: 100%;
-            margin-top: 1rem;
-            padding: 1rem;
-            border-left: 4px solid var(--primary-light);
-            background: #eff6ff;
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--line);
             border-radius: 8px;
-            color: #1e3a8a;
+            padding: 18px;
+            margin-bottom: 18px;
         }
 
-        .caiso-summary {
-            width: 100%;
+        .panel h2 {
+            margin: 0 0 14px;
+            font-size: 18px;
+        }
+
+        .cases {
             display: grid;
-            gap: 1rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
         }
 
-        .caiso-case {
-            border: 1px solid #dbeafe;
+        .case {
+            border: 1px solid var(--line);
             border-radius: 8px;
-            padding: 1rem;
-            background: #f8fafc;
+            padding: 16px;
+            background: #fbfcfe;
         }
 
-        .caiso-case h3 {
-            margin: 0 0 0.65rem;
-            color: #1e3a8a;
-            font-size: 1.05rem;
+        .case h3 {
+            margin: 0 0 10px;
+            font-size: 16px;
         }
 
-        .caiso-meta {
+        .meta {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-            gap: 0.5rem;
-            color: #475569;
-            font-size: 0.86rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .chart-actions {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 0.5rem;
-            margin-top: 0.75rem;
-        }
-
-        .chart-action {
-            border: 1px solid #bfdbfe;
-            border-radius: 8px;
-            background: #eff6ff;
-            color: #1d4ed8;
-            cursor: pointer;
-            font-weight: 700;
-            padding: 0.55rem 0.75rem;
-        }
-
-        .chart-action:hover {
-            background: #dbeafe;
-        }
-
-        .chart-container {
-            width: 100%;
-            text-align: center;
-            animation: fadeIn 0.5s ease, slideUp 0.5s ease;
-            background: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: var(--shadow-md);
-        }
-
-        .chart-container img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .chart-container img:hover {
-            transform: scale(1.02);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            color: var(--muted);
+            font-size: 13px;
+            margin-bottom: 12px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 1rem;
-            font-size: 0.9rem;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: var(--shadow-sm);
+            font-size: 13px;
         }
 
         th,
         td {
-            padding: 1rem;
+            border-bottom: 1px solid var(--line);
+            padding: 8px 6px;
             text-align: left;
-            border-bottom: 1px solid var(--border-color);
         }
 
         th {
-            background: #f3f4f6;
-            color: #374151;
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.05em;
+            color: var(--muted);
+            font-weight: 600;
         }
 
-        tr:hover {
-            background-color: rgba(59, 130, 246, 0.05);
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
+        button {
+            border: 1px solid var(--accent);
+            background: var(--accent);
+            color: #fff;
+            border-radius: 6px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 13px;
         }
 
-        @keyframes slideUp {
-            from {
-                transform: translateY(20px);
-            }
-
-            to {
-                transform: translateY(0);
-            }
+        button.secondary {
+            background: var(--surface);
+            color: var(--accent);
         }
 
-        .loading {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(59, 130, 246, 0.2);
-            border-radius: 50%;
-            border-top-color: var(--primary-light);
-            animation: spin 0.8s linear infinite;
+        .notice {
+            border-left: 4px solid var(--warn);
+            background: #fff7e8;
+            color: #5f3b00;
+            padding: 12px;
+            border-radius: 6px;
         }
 
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* Modal/Lightbox Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.8);
+        .chart {
+            min-height: 300px;
+            display: flex;
             align-items: center;
             justify-content: center;
+            color: var(--muted);
         }
 
-        .modal-content {
-            margin: auto;
-            display: block;
-            max-width: 90%;
-            max-height: 90vh;
-            object-fit: contain;
-            border-radius: 4px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            animation: zoomIn 0.3s;
+        .chart img {
+            max-width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #fff;
         }
 
-        .close-btn {
-            position: absolute;
-            top: 20px;
-            right: 35px;
-            color: #f1f1f1;
-            font-size: 40px;
-            font-weight: bold;
-            transition: 0.3s;
-            cursor: pointer;
-            z-index: 1001;
-        }
-
-        .close-btn:hover,
-        .close-btn:focus {
-            color: #bbb;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        @keyframes zoomIn {
-            from {
-                transform: scale(0)
+        @media (max-width: 900px) {
+            .status-grid,
+            .cases {
+                grid-template-columns: 1fr;
             }
 
-            to {
-                transform: scale(1)
+            .topbar {
+                align-items: flex-start;
+                flex-direction: column;
             }
         }
     </style>
 </head>
 
 <body>
-
-    <nav class="navbar">
-        <div class="navbar-content">
-            <h1 data-i18n="appTitle">区域新能源发电预测与电网调度辅助平台</h1>
-            <button id="languageToggle" class="language-toggle" type="button" data-i18n="langToggle">EN</button>
-        </div>
-    </nav>
-
-    <!-- Image Modal -->
-    <div id="imageModal" class="modal">
-        <span class="close-btn" onclick="closeModal()">&times;</span>
-        <img class="modal-content" id="modalImg">
-    </div>
-
-    <div class="container">
-        <!-- Left Column: Input Form -->
-        <div class="card">
-            <div class="card-header">
-                    <h2 class="card-title" data-i18n="inputTitle">区域预测输入</h2>
+    <header>
+        <div class="topbar">
+            <div>
+                <h1 data-i18n="title">EIA 真实电网数据回测平台</h1>
+                <p class="subtitle" data-i18n="subtitle">使用 EIA Open Data 小时级真实电网数据，按时间顺序验证负荷、太阳能、风电和净负荷预测。</p>
             </div>
-            <form id="predictionForm">
-                <div class="form-group">
-                    <label for="REGION_ID" data-i18n="regionLabel">区域场景</label>
-                    <select id="REGION_ID" required>
-                        <option value="guangdong_guangzhou">Guangdong - Guangzhou</option>
-                        <option value="guangdong_shenzhen">Guangdong - Shenzhen</option>
-                        <option value="guangxi_nanning">Guangxi - Nanning</option>
-                        <option value="yunnan_kunming">Yunnan - Kunming</option>
-                        <option value="guizhou_guiyang">Guizhou - Guiyang</option>
-                        <option value="hainan_haikou">Hainan - Haikou</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="DATE_TIME" data-i18n="dateTimeLabel">日期时间</label>
-                    <input type="datetime-local" id="DATE_TIME" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="AMBIENT_TEMPERATURE" data-i18n="temperatureLabel">环境温度 (C)</label>
-                    <input type="number" id="AMBIENT_TEMPERATURE" step="0.1" value="30.5" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="RELATIVE_HUMIDITY" data-i18n="humidityLabel">相对湿度 (%)</label>
-                    <input type="number" id="RELATIVE_HUMIDITY" step="0.1" value="75.0" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="WIND_SPEED" data-i18n="windLabel">风速 (m/s)</label>
-                    <input type="number" id="WIND_SPEED" step="0.1" value="2.8" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="IRRADIATION" data-i18n="irradianceLabel">太阳辐照度 (W/m2)</label>
-                    <input type="number" id="IRRADIATION" step="0.1" value="720.0" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="MODULE_TEMPERATURE" data-i18n="moduleTemperatureLabel">组件温度 (C，可选)</label>
-                    <input type="number" id="MODULE_TEMPERATURE" step="0.1" placeholder="留空时自动估算" data-i18n-placeholder="moduleTemperaturePlaceholder">
-                </div>
-
-                <div class="form-group">
-                    <label for="STORAGE_SOC" data-i18n="socLabel">储能当前 SOC (%)</label>
-                    <input type="number" id="STORAGE_SOC" step="1" min="0" max="100" value="50" required>
-                </div>
-
-                <button type="submit" class="btn btn-primary" data-i18n="submitButton">生成调度辅助分析</button>
-            </form>
+            <button id="languageToggle" class="lang" type="button">EN</button>
         </div>
+    </header>
 
-        <!-- Right Column: Visualization & Result -->
-        <div class="right-column">
-            <!-- Visualization Toolbar -->
-            <div class="card" style="margin-bottom: 2rem;">
-                <div class="card-header">
-                    <h2 class="card-title" data-i18n="insightsTitle">区域数据分析</h2>
-                </div>
-                <div class="toolbar">
-                    <button id="btnFeatureImportance" class="btn btn-tool" data-i18n="featureImportanceButton">📊 Feature Importance</button>
-                    <button id="btnTimeseries" class="btn btn-tool" data-i18n="trendButton">📈 Trend Analysis</button>
-                    <button id="btnHeatmap" class="btn btn-tool" data-i18n="heatmapButton">🔥 Generation Heatmap</button>
-                    <button id="btnLoadBalance" class="btn btn-tool" data-i18n="loadBalanceButton">Generation-Load Balance</button>
-                    <button id="btnStorageStrategy" class="btn btn-tool" data-i18n="storageStrategyButton">Storage Charge/Discharge</button>
-                    <button id="btnCaisoBacktest" class="btn btn-tool" data-i18n="caisoButton">真实电网回测</button>
-                </div>
-                <div id="displayArea" class="result-area">
-                    <div class="placeholder-text" data-i18n="displayPlaceholder">选择上方图表查看新能源发电、负荷需求与调度辅助分析</div>
-                </div>
-            </div>
+    <main>
+        <section class="status-grid" id="statusGrid"></section>
 
-            <!-- Prediction Result Area -->
-            <div class="card" id="predictionResultCard" style="display: none;">
-                <div class="card-header">
-                    <h2 class="card-title" data-i18n="resultTitle">调度辅助分析结果</h2>
-                </div>
-                <div id="resultContent" class="result-area">
-                    <!-- Result will be injected here -->
-                </div>
-            </div>
-        </div>
-    </div>
+        <section class="panel">
+            <h2 data-i18n="backtestTitle">多年时间切分回测</h2>
+            <div id="caseList" class="cases"></div>
+        </section>
+
+        <section class="panel">
+            <h2 data-i18n="chartTitle">预测曲线</h2>
+            <div id="chartArea" class="chart" data-i18n="chartPlaceholder">选择一个目标查看真实值与预测值。</div>
+        </section>
+    </main>
 
     <script>
         const translations = {
             zh: {
-                appTitle: '区域新能源发电预测与电网调度辅助平台',
-                langToggle: 'EN',
-                inputTitle: '区域预测输入',
-                regionLabel: '区域场景',
-                dateTimeLabel: '日期时间',
-                temperatureLabel: '环境温度 (C)',
-                humidityLabel: '相对湿度 (%)',
-                windLabel: '风速 (m/s)',
-                irradianceLabel: '太阳辐照度 (W/m2)',
-                moduleTemperatureLabel: '组件温度 (C，可选)',
-                moduleTemperaturePlaceholder: '留空时自动估算',
-                socLabel: '储能当前 SOC (%)',
-                submitButton: '生成调度辅助分析',
-                insightsTitle: '区域数据分析',
-                featureImportanceButton: '📊 特征重要性',
-                trendButton: '📈 趋势分析',
-                heatmapButton: '🔥 发电热力图',
-                loadBalanceButton: '发电-负荷平衡',
-                storageStrategyButton: '储能充放电建议',
-                caisoButton: '真实电网回测',
-                displayPlaceholder: '选择上方图表查看新能源发电、负荷需求与调度辅助分析',
-                resultTitle: '调度辅助分析结果',
-                loading: '正在分析数据...',
-                loadingFailed: '加载失败',
-                errorOccurred: '发生错误',
-                predictionFailed: '预测失败',
-                unknownError: '未知错误',
-                feature: '特征',
-                importance: '重要性',
-                clickToEnlarge: '点击放大',
-                analysisChartAlt: '分析图表',
-                pvOutput: '光伏预测发电功率',
-                loadDemand: '负荷预测需求',
-                netLoad: '净负荷需求',
-                pvCoverage: '光伏覆盖率',
-                storageAction: '储能动作',
-                netLoadAfterStorage: '储能后净负荷',
-                peakShaving: '削峰贡献',
-                socChange: 'SOC 变化',
-                dispatchHint: '调度辅助提示：',
-                rampRisk: '波动风险',
-                region: '区域',
-                storageHint: '储能策略建议：',
-                curtailmentRisk: '弃光/消纳风险',
-                caisoTitle: 'CAISO 真实公开数据验证',
-                caisoSource: '数据源',
-                caisoTrainingWindow: '训练窗口',
-                caisoEvaluationWindow: '验证窗口',
-                caisoRows: '样本行数',
-                caisoTarget: '目标',
-                caisoModelMape: '模型 MAPE',
-                caisoBaselineMape: '日前基线 MAPE',
-                caisoModelMae: '模型 MAE',
-                caisoSolarActive: '太阳能白天有效时段',
-                caisoActiveNote: '太阳能全时段 MAPE 会被夜间接近 0 MW 放大，白天有效时段更适合解释模型表现。',
-                chartLoad: '负荷曲线',
-                chartSolar: '太阳能曲线',
-                chartWind: '风电曲线',
-                chartNetLoad: '净负荷曲线',
-                pvUnit: 'MW',
-                demoPv: 'MW光伏',
-                demoLoad: 'MW负荷',
-                demoStorage: 'MW储能',
-                actions: {
-                    charge: '充电',
-                    discharge: '放电',
-                    standby: '待机',
-                },
-                levels: {
-                    high: '高',
-                    medium: '中',
-                    low: '低',
-                },
-                risks: {
-                    medium: '中',
-                    low: '低',
-                    'low-solar': '低光伏',
-                },
-                curtailment: {
-                    high: '高',
-                    medium: '中',
-                    low: '低',
-                },
-                assessmentRecommendations: {
-                    high: '光伏发电功率较高，建议优先消纳本地新能源，并关注午间净负荷快速下降风险。',
-                    medium: '光伏可抵消部分区域负荷，建议保留常规电源和负荷侧调节能力以应对晚高峰爬坡。',
-                    low: '光伏贡献有限，调度计划仍应以负荷预测、备用容量和其他灵活资源为主要依据。',
-                },
-                storageReasons: {
-                    charge: '当前时段具备光伏消纳条件，建议储能充电，为晚高峰净负荷爬坡预留调节能力。',
-                    discharge: '当前处于高负荷或晚高峰场景，建议储能放电，降低峰值净负荷压力。',
-                    standby: '当前没有明显充放电信号，建议储能保持待机，保留后续调节灵活性。',
-                },
+                title: 'EIA 真实电网数据回测平台',
+                subtitle: '使用 EIA Open Data 小时级真实电网数据，按时间顺序验证负荷、太阳能、风电和净负荷预测。',
+                backtestTitle: '多年时间切分回测',
+                chartTitle: '预测曲线',
+                chartPlaceholder: '选择一个目标查看真实值与预测值。',
+                source: '数据源',
+                scenario: '实验',
+                train: '训练窗口',
+                evaluation: '验证窗口',
+                rows: '样本行数',
+                status: '状态',
+                available: '已生成',
+                unavailable: '等待数据生成',
+                target: '目标',
+                mape: 'MAPE',
+                mae: 'MAE',
+                rmse: 'RMSE',
+                load: '负荷',
+                solar: '太阳能',
+                wind: '风电',
+                netLoad: '净负荷',
+                loading: '正在加载...',
+                failed: '加载失败',
+                noData: '当前还没有生成 EIA 回测文件。',
             },
             en: {
-                appTitle: 'Regional Renewable Generation Forecasting and Grid Dispatch Dashboard',
-                langToggle: '中文',
-                inputTitle: 'Regional Forecast Input',
-                regionLabel: 'Regional Scenario',
-                dateTimeLabel: 'Date & Time',
-                temperatureLabel: 'Ambient Temperature (C)',
-                humidityLabel: 'Relative Humidity (%)',
-                windLabel: 'Wind Speed (m/s)',
-                irradianceLabel: 'Solar Irradiance (W/m2)',
-                moduleTemperatureLabel: 'Module Temperature (C, optional)',
-                moduleTemperaturePlaceholder: 'Auto-estimated if empty',
-                socLabel: 'Current Storage SOC (%)',
-                submitButton: 'Run Dispatch Support Analysis',
-                insightsTitle: 'Regional Data Insights',
-                featureImportanceButton: '📊 Feature Importance',
-                trendButton: '📈 Trend Analysis',
-                heatmapButton: '🔥 Generation Heatmap',
-                loadBalanceButton: 'Generation-Load Balance',
-                storageStrategyButton: 'Storage Charge/Discharge',
-                caisoButton: 'Real Grid Backtest',
-                displayPlaceholder: 'Use the chart buttons above to inspect renewable generation, load demand, and dispatch support analysis.',
-                resultTitle: 'Dispatch Support Result',
-                loading: 'Analyzing data...',
-                loadingFailed: 'Loading failed',
-                errorOccurred: 'Error occurred',
-                predictionFailed: 'Prediction failed',
-                unknownError: 'Unknown error',
-                feature: 'Feature',
-                importance: 'Importance',
-                clickToEnlarge: 'Click to enlarge',
-                analysisChartAlt: 'Analysis Chart',
-                pvOutput: 'PV Output Forecast',
-                loadDemand: 'Load Demand Forecast',
-                netLoad: 'Net Load Demand',
-                pvCoverage: 'PV Coverage',
-                storageAction: 'Storage Action',
-                netLoadAfterStorage: 'Net Load After Storage',
-                peakShaving: 'Peak Shaving',
-                socChange: 'SOC Change',
-                dispatchHint: 'Dispatch Hint: ',
-                rampRisk: 'Ramp Risk',
-                region: 'Region',
-                storageHint: 'Storage Strategy: ',
-                curtailmentRisk: 'Curtailment/Consumption Risk',
-                caisoTitle: 'CAISO Real Public Data Validation',
-                caisoSource: 'Data Source',
-                caisoTrainingWindow: 'Training Window',
-                caisoEvaluationWindow: 'Evaluation Window',
-                caisoRows: 'Rows',
-                caisoTarget: 'Target',
-                caisoModelMape: 'Model MAPE',
-                caisoBaselineMape: 'Day-Ahead Baseline MAPE',
-                caisoModelMae: 'Model MAE',
-                caisoSolarActive: 'Solar Active Generation Period',
-                caisoActiveNote: 'Full-period solar MAPE is inflated by night hours near 0 MW; active-generation metrics explain model behavior better.',
-                chartLoad: 'Load Chart',
-                chartSolar: 'Solar Chart',
-                chartWind: 'Wind Chart',
-                chartNetLoad: 'Net Load Chart',
-                pvUnit: 'MW',
-                demoPv: 'MW PV',
-                demoLoad: 'MW load',
-                demoStorage: 'MW storage',
-                actions: {
-                    charge: 'charge',
-                    discharge: 'discharge',
-                    standby: 'standby',
-                },
-                levels: {
-                    high: 'high',
-                    medium: 'medium',
-                    low: 'low',
-                },
-                risks: {
-                    medium: 'medium',
-                    low: 'low',
-                    'low-solar': 'low solar',
-                },
-                curtailment: {
-                    high: 'high',
-                    medium: 'medium',
-                    low: 'low',
-                },
-                assessmentRecommendations: {
-                    high: 'PV output is strong for this scenario. Prioritize local renewable consumption and monitor midday downward net-load ramps.',
-                    medium: 'PV output can offset part of regional demand. Keep conventional generation and load-side flexibility ready for evening ramp-up.',
-                    low: 'PV contribution is limited. Dispatch planning should rely mainly on load forecast, reserve margin, and other flexible resources.',
-                },
-                storageReasons: {
-                    charge: 'PV contribution is available in this period. Charge storage to prepare for the evening net-load ramp.',
-                    discharge: 'High-load or evening-peak conditions are detected. Discharge storage to reduce peak net-load pressure.',
-                    standby: 'No strong charge or discharge signal is detected. Keep storage in standby and preserve flexibility for later ramps.',
-                },
+                title: 'EIA Real Grid Backtesting Dashboard',
+                subtitle: 'Chronological backtests for load, solar, wind, and net load using hourly EIA Open Data.',
+                backtestTitle: 'Multi-Year Time-Split Backtests',
+                chartTitle: 'Prediction Curves',
+                chartPlaceholder: 'Choose a target to compare actual and predicted values.',
+                source: 'Source',
+                scenario: 'Scenario',
+                train: 'Training Window',
+                evaluation: 'Evaluation Window',
+                rows: 'Rows',
+                status: 'Status',
+                available: 'Generated',
+                unavailable: 'Waiting for data',
+                target: 'Target',
+                mape: 'MAPE',
+                mae: 'MAE',
+                rmse: 'RMSE',
+                load: 'Load',
+                solar: 'Solar',
+                wind: 'Wind',
+                netLoad: 'Net Load',
+                loading: 'Loading...',
+                failed: 'Failed to load',
+                noData: 'No EIA backtest files have been generated yet.',
             },
         };
 
-        const regionNameZh = {
-            'Guangdong - Guangzhou': '广东 - 广州',
-            'Guangdong - Shenzhen': '广东 - 深圳',
-            'Guangxi - Nanning': '广西 - 南宁',
-            'Yunnan - Kunming': '云南 - 昆明',
-            'Guizhou - Guiyang': '贵州 - 贵阳',
-            'Hainan - Haikou': '海南 - 海口',
-        };
-
-        let currentLang = localStorage.getItem('dashboardLanguage') || 'zh';
-        let cachedRegions = [];
-        let latestDispatchData = null;
-        let latestFeatureImportance = null;
-        let latestCaisoData = null;
+        let lang = localStorage.getItem('dashboardLanguage') || 'zh';
+        let latestData = null;
 
         function t(key) {
-            return translations[currentLang][key] || translations.zh[key] || key;
-        }
-
-        function labelFrom(group, value) {
-            return translations[currentLang][group][value] || value;
-        }
-
-        function formatRegionName(region) {
-            if (!region) return '';
-            return currentLang === 'zh' ? (regionNameZh[region.region_name] || region.region_name) : region.region_name;
-        }
-
-        function formatRegionOption(region) {
-            return `${formatRegionName(region)} (${region.capacity_mw} ${t('demoPv')} / ${region.peak_load_mw} ${t('demoLoad')} / ${region.storage_power_mw} ${t('demoStorage')})`;
+            return translations[lang][key] || translations.zh[key] || key;
         }
 
         function applyTranslations() {
-            document.documentElement.lang = currentLang === 'zh' ? 'zh-CN' : 'en';
-            document.title = t('appTitle');
-
-            document.querySelectorAll('[data-i18n]').forEach((element) => {
+            document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+            document.title = t('title');
+            document.querySelectorAll('[data-i18n]').forEach(element => {
                 element.textContent = t(element.dataset.i18n);
             });
-            document.querySelectorAll('[data-i18n-placeholder]').forEach((element) => {
-                element.placeholder = t(element.dataset.i18nPlaceholder);
-            });
-
-            renderRegionOptions();
-            if (latestDispatchData) {
-                renderDispatchResult(latestDispatchData);
-            }
-            if (latestFeatureImportance) {
-                renderFeatureImportance(latestFeatureImportance);
-            }
-            if (latestCaisoData && displayArea.dataset.view === 'caiso') {
-                renderCaisoBacktests(latestCaisoData);
+            document.getElementById('languageToggle').textContent = lang === 'zh' ? 'EN' : '中文';
+            if (latestData) {
+                renderDashboard(latestData);
             }
         }
 
-        function renderRegionOptions() {
-            if (!cachedRegions.length) return;
-
-            const selectedValue = regionSelect.value;
-            regionSelect.innerHTML = '';
-            cachedRegions.forEach(region => {
-                const option = document.createElement('option');
-                option.value = region.region_id;
-                option.textContent = formatRegionOption(region);
-                regionSelect.appendChild(option);
-            });
-            if (selectedValue) {
-                regionSelect.value = selectedValue;
-            }
-        }
-
-        function renderFeatureImportance(items) {
-            displayArea.dataset.view = 'featureImportance';
-            let html = `<div style="width:100%; overflow-x:auto;"><table><tr><th>${t('feature')}</th><th>${t('importance')}</th></tr>`;
-            items.forEach(item => {
-                const width = (item.importance * 100).toFixed(1);
-                html += `
-                        <tr>
-                            <td>${item.feature}</td>
-                            <td>
-                                <div style="display:flex; align-items:center;">
-                                    <span style="width:50px; display:inline-block;">${item.importance.toFixed(4)}</span>
-                                    <div style="flex-grow:1; height:6px; background:#ecf0f1; border-radius:3px; margin-left:10px;">
-                                        <div style="width:${width}%; height:100%; background:var(--accent-color); border-radius:3px;"></div>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>`;
-            });
-            html += '</table></div>';
-            displayArea.innerHTML = html;
-        }
-
-        function formatMetricValue(value, suffix = '') {
+        function metricValue(value, suffix = '') {
             if (value === null || value === undefined || Number.isNaN(Number(value))) {
                 return '-';
             }
             return `${Number(value).toFixed(2)}${suffix}`;
         }
 
-        function renderMetricRow(target, options = {}) {
-            const label = currentLang === 'zh' ? target.label_zh : target.label;
-            const modelMetric = options.active ? target.active_generation_model : target.model;
-            const baselineMetric = options.active ? target.active_generation_day_ahead_baseline : target.day_ahead_baseline;
-            const rowLabel = options.active ? `${label} (${t('caisoSolarActive')})` : label;
-            return `
+        function targetRows(targets) {
+            const rows = [
+                [t('load'), targets?.load?.model],
+                [t('solar'), targets?.solar?.model],
+                [t('wind'), targets?.wind?.model],
+                [t('netLoad'), targets?.net_load?.model],
+            ];
+            return rows.map(([label, metric]) => `
                 <tr>
-                    <td>${rowLabel}</td>
-                    <td>${formatMetricValue(modelMetric?.mape_percent, '%')}</td>
-                    <td>${formatMetricValue(baselineMetric?.mape_percent, '%')}</td>
-                    <td>${formatMetricValue(modelMetric?.mae, ' MW')}</td>
+                    <td>${label}</td>
+                    <td>${metricValue(metric?.mape_percent, '%')}</td>
+                    <td>${metricValue(metric?.mae, ' MW')}</td>
+                    <td>${metricValue(metric?.rmse, ' MW')}</td>
                 </tr>
-            `;
+            `).join('');
         }
 
-        function renderCaisoBacktests(data) {
-            displayArea.dataset.view = 'caiso';
-            const sourceLabel = currentLang === 'zh' ? data.source_zh : data.source;
-            const description = currentLang === 'zh' ? data.description_zh : data.description;
-            const casesHtml = data.cases.map(caseItem => {
-                if (!caseItem.available) {
-                    return '';
-                }
-                const title = currentLang === 'zh' ? caseItem.title_zh : caseItem.title;
-                const predictionRows = caseItem.predictions?.rows || caseItem.dataset?.rows || '-';
-                return `
-                    <div class="caiso-case">
-                        <h3>${title}</h3>
-                        <div class="caiso-meta">
-                            <div><strong>${t('caisoTrainingWindow')}:</strong> ${caseItem.training_window}</div>
-                            <div><strong>${t('caisoEvaluationWindow')}:</strong> ${caseItem.evaluation_window}</div>
-                            <div><strong>${t('caisoRows')}:</strong> ${predictionRows}</div>
-                        </div>
-                        <div style="width:100%; overflow-x:auto;">
-                            <table>
-                                <tr>
-                                    <th>${t('caisoTarget')}</th>
-                                    <th>${t('caisoModelMape')}</th>
-                                    <th>${t('caisoBaselineMape')}</th>
-                                    <th>${t('caisoModelMae')}</th>
-                                </tr>
-                                ${renderMetricRow(caseItem.targets.load)}
-                                ${renderMetricRow(caseItem.targets.solar)}
-                                ${renderMetricRow(caseItem.targets.solar, { active: true })}
-                                ${renderMetricRow(caseItem.targets.wind)}
-                                ${renderMetricRow(caseItem.targets.net_load)}
-                            </table>
-                        </div>
-                        <div class="chart-actions">
-                            <button class="chart-action" type="button" onclick="showCaisoPlot('${caseItem.id}', 'load')">${t('chartLoad')}</button>
-                            <button class="chart-action" type="button" onclick="showCaisoPlot('${caseItem.id}', 'solar')">${t('chartSolar')}</button>
-                            <button class="chart-action" type="button" onclick="showCaisoPlot('${caseItem.id}', 'wind')">${t('chartWind')}</button>
-                            <button class="chart-action" type="button" onclick="showCaisoPlot('${caseItem.id}', 'net_load')">${t('chartNetLoad')}</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            displayArea.innerHTML = `
-                <div class="caiso-summary">
-                    <div class="dispatch-advice" style="margin-top:0;">
-                        <strong>${t('caisoTitle')}</strong>
-                        <div style="margin-top:0.35rem;">${t('caisoSource')}: ${sourceLabel}</div>
-                        <div style="margin-top:0.35rem;">${description}</div>
-                        <div style="margin-top:0.35rem; color:#475569;">${t('caisoActiveNote')}</div>
-                    </div>
-                    ${casesHtml}
+        function renderStatus(data) {
+            const generated = data.cases.filter(item => item.available).length;
+            document.getElementById('statusGrid').innerHTML = `
+                <div class="metric">
+                    <div class="metric-label">${t('source')}</div>
+                    <div class="metric-value">EIA</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">${t('scenario')}</div>
+                    <div class="metric-value">2021-2026</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">${t('status')}</div>
+                    <div class="metric-value">${generated}/${data.cases.length}</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">${t('target')}</div>
+                    <div class="metric-value">MW</div>
                 </div>
             `;
         }
 
-        function renderDispatchResult(data) {
-            const assessment = data.dispatch_assessment;
-            const storage = data.storage_dispatch;
-            resultContent.innerHTML = `
-                    <div style="width: 100%;">
-                        <div class="metric-grid">
-                            <div class="metric-card">
-                                <div class="metric-label">${t('pvOutput')}</div>
-                                <div class="metric-value">${data.solar_prediction_mw.toFixed(2)}</div>
-                                <div style="font-size: 0.78rem; color: #64748b;">${t('pvUnit')}</div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-label">${t('loadDemand')}</div>
-                                <div class="metric-value">${data.load_prediction_mw.toFixed(2)}</div>
-                                <div style="font-size: 0.78rem; color: #64748b;">${t('pvUnit')}</div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-label">${t('netLoad')}</div>
-                                <div class="metric-value">${assessment.net_load_mw.toFixed(2)}</div>
-                                <div style="font-size: 0.78rem; color: #64748b;">${t('pvUnit')}</div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-label">${t('pvCoverage')}</div>
-                                <div class="metric-value">${assessment.solar_share_percent.toFixed(2)}%</div>
-                                <div style="font-size: 0.78rem; color: #64748b;">${labelFrom('levels', assessment.supply_level)}</div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-label">${t('storageAction')}</div>
-                                <div class="metric-value">${labelFrom('actions', storage.action)}</div>
-                                <div style="font-size: 0.78rem; color: #64748b;">${storage.storage_power_mw.toFixed(2)} ${t('pvUnit')}</div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-label">${t('netLoadAfterStorage')}</div>
-                                <div class="metric-value">${storage.net_load_after_storage_mw.toFixed(2)}</div>
-                                <div style="font-size: 0.78rem; color: #64748b;">${t('pvUnit')}</div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-label">${t('peakShaving')}</div>
-                                <div class="metric-value">${storage.peak_shaving_mw.toFixed(2)}</div>
-                                <div style="font-size: 0.78rem; color: #64748b;">${t('pvUnit')}</div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-label">${t('socChange')}</div>
-                                <div class="metric-value">${storage.current_soc_percent.toFixed(0)}→${storage.next_soc_percent.toFixed(0)}%</div>
-                                <div style="font-size: 0.78rem; color: #64748b;">${storage.storage_energy_mwh.toFixed(0)} MWh</div>
-                            </div>
+        function renderCase(caseItem) {
+            const title = lang === 'zh' ? caseItem.title_zh : caseItem.title;
+            if (!caseItem.available) {
+                return `
+                    <div class="case">
+                        <h3>${title}</h3>
+                        <div class="meta">
+                            <div><strong>${t('train')}:</strong> ${caseItem.training_window || '-'}</div>
+                            <div><strong>${t('evaluation')}:</strong> ${caseItem.evaluation_window || '-'}</div>
                         </div>
-                        <div class="dispatch-advice">
-                            <strong>${t('dispatchHint')}</strong>${translations[currentLang].assessmentRecommendations[assessment.supply_level]}
-                            <div style="margin-top: 0.5rem; font-size: 0.86rem;">${t('rampRisk')}：${labelFrom('risks', assessment.ramp_risk)} · ${t('region')}：${formatRegionName(data.region)}</div>
-                        </div>
-                        <div class="dispatch-advice" style="border-left-color: #0ea5e9; background: #f0f9ff;">
-                            <strong>${t('storageHint')}</strong>${translations[currentLang].storageReasons[storage.action]}
-                            <div style="margin-top: 0.5rem; font-size: 0.86rem;">${t('curtailmentRisk')}：${labelFrom('curtailment', storage.curtailment_risk)}</div>
-                        </div>
+                        <div class="notice">${t('noData')}</div>
                     </div>
                 `;
-        }
-
-        // Set default datetime to now
-        const now = new Date();
-        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-        document.getElementById('DATE_TIME').value = now.toISOString().slice(0, 16);
-
-        const displayArea = document.getElementById('displayArea');
-        const predictionResultCard = document.getElementById('predictionResultCard');
-        const resultContent = document.getElementById('resultContent');
-        const regionSelect = document.getElementById('REGION_ID');
-        const languageToggle = document.getElementById('languageToggle');
-
-        function showLoading(targetElement) {
-            targetElement.innerHTML = `<div class="loading"></div><p style="margin-top:10px;color:#95a5a6;">${t('loading')}</p>`;
-        }
-
-        // Modal functions
-        const modal = document.getElementById('imageModal');
-        const modalImg = document.getElementById('modalImg');
-
-        window.openModal = function (src) {
-            console.log("Opening modal with:", src);
-            modal.style.display = "flex";
-            modalImg.src = src;
-        }
-
-        window.closeModal = function () {
-            modal.style.display = "none";
-        }
-
-        // Close modal when clicking outside the image
-        window.onclick = function (event) {
-            if (event.target == modal) {
-                closeModal();
             }
+
+            const rows = caseItem.predictions?.rows || caseItem.dataset?.rows || '-';
+            return `
+                <div class="case">
+                    <h3>${title}</h3>
+                    <div class="meta">
+                        <div><strong>${t('train')}:</strong> ${caseItem.training_window}</div>
+                        <div><strong>${t('evaluation')}:</strong> ${caseItem.evaluation_window}</div>
+                        <div><strong>${t('rows')}:</strong> ${rows}</div>
+                        <div><strong>${t('status')}:</strong> ${t('available')}</div>
+                    </div>
+                    <table>
+                        <tr>
+                            <th>${t('target')}</th>
+                            <th>${t('mape')}</th>
+                            <th>${t('mae')}</th>
+                            <th>${t('rmse')}</th>
+                        </tr>
+                        ${targetRows(caseItem.targets)}
+                    </table>
+                    <div class="actions">
+                        <button type="button" onclick="showPlot('${caseItem.id}', 'load')">${t('load')}</button>
+                        <button type="button" onclick="showPlot('${caseItem.id}', 'solar')">${t('solar')}</button>
+                        <button type="button" onclick="showPlot('${caseItem.id}', 'wind')">${t('wind')}</button>
+                        <button type="button" onclick="showPlot('${caseItem.id}', 'net_load')">${t('netLoad')}</button>
+                    </div>
+                </div>
+            `;
         }
 
-        // Helper to show plot
-        async function showPlot(url) {
-            latestFeatureImportance = null;
-            displayArea.dataset.view = 'plot';
-            showLoading(displayArea);
+        function renderDashboard(data) {
+            latestData = data;
+            renderStatus(data);
+            document.getElementById('caseList').innerHTML = data.cases.map(renderCase).join('');
+        }
+
+        async function loadDashboard() {
+            const caseList = document.getElementById('caseList');
+            caseList.innerHTML = `<div class="notice">${t('loading')}</div>`;
             try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error(t('loadingFailed'));
-                const blob = await response.blob();
-                const imgUrl = URL.createObjectURL(blob);
-
-                displayArea.innerHTML = ''; // Clear loading
-
-                const container = document.createElement('div');
-                container.className = 'chart-container';
-
-                const img = document.createElement('img');
-                img.src = imgUrl;
-                img.alt = t('analysisChartAlt');
-                img.style.cursor = 'zoom-in';
-                img.onclick = function () { openModal(imgUrl); };
-
-                const caption = document.createElement('p');
-                caption.style.marginTop = '10px';
-                caption.style.fontSize = '0.8rem';
-                caption.style.color = '#7f8c8d';
-                caption.textContent = t('clickToEnlarge');
-
-                container.appendChild(img);
-                container.appendChild(caption);
-
-                displayArea.appendChild(container);
-
-            } catch (e) {
-                displayArea.innerHTML = `<p style="color: var(--danger-color);">${t('loadingFailed')}: ${e.message}</p>`;
-            }
-        }
-
-        document.getElementById('btnTimeseries').addEventListener('click', () => showPlot('/plot/timeseries'));
-        document.getElementById('btnHeatmap').addEventListener('click', () => showPlot('/plot/heatmap'));
-        document.getElementById('btnLoadBalance').addEventListener('click', () => showPlot('/plot/load_balance'));
-        document.getElementById('btnStorageStrategy').addEventListener('click', () => showPlot('/plot/storage_strategy'));
-
-        window.showCaisoPlot = function (period, target) {
-            showPlot(`/plot/caiso_backtest?period=${encodeURIComponent(period)}&target=${encodeURIComponent(target)}`);
-        }
-
-        document.getElementById('btnCaisoBacktest').addEventListener('click', async function () {
-            latestFeatureImportance = null;
-            showLoading(displayArea);
-            try {
-                const response = await fetch('/caiso/backtests');
+                const response = await fetch('/eia/backtests');
                 const data = await response.json();
                 if (!response.ok || !data.cases) {
-                    throw new Error(data.detail || t('unknownError'));
+                    throw new Error(data.detail || t('failed'));
                 }
-                latestCaisoData = data;
-                renderCaisoBacktests(data);
+                renderDashboard(data);
             } catch (error) {
-                displayArea.innerHTML = `<p style="color: var(--danger-color);">${t('loadingFailed')}: ${error.message}</p>`;
-            }
-        });
-
-        async function loadRegions() {
-            try {
-                const response = await fetch('/regions');
-                const data = await response.json();
-                if (!response.ok || !data.regions) return;
-
-                cachedRegions = data.regions;
-                renderRegionOptions();
-            } catch (error) {
-                console.warn('Could not load region metadata:', error);
+                caseList.innerHTML = `<div class="notice">${t('failed')}: ${error.message}</div>`;
             }
         }
 
-        loadRegions();
-
-        document.getElementById('btnFeatureImportance').addEventListener('click', async function () {
-            showLoading(displayArea);
+        window.showPlot = async function (period, target) {
+            const chartArea = document.getElementById('chartArea');
+            chartArea.textContent = t('loading');
             try {
-                const response = await fetch('/feature_importance');
-                const data = await response.json();
-
-                if (response.ok && data.status === 'success') {
-                    latestFeatureImportance = data.importance;
-                    renderFeatureImportance(data.importance);
-                } else {
-                    displayArea.innerHTML = `<p style="color: var(--danger-color);">${t('loadingFailed')}: ${data.detail || t('unknownError')}</p>`;
+                const response = await fetch(`/plot/eia_backtest?period=${encodeURIComponent(period)}&target=${encodeURIComponent(target)}`);
+                if (!response.ok) {
+                    const data = await response.json().catch(() => ({}));
+                    throw new Error(data.detail || t('failed'));
                 }
+                const blob = await response.blob();
+                const imageUrl = URL.createObjectURL(blob);
+                chartArea.innerHTML = '';
+                const image = document.createElement('img');
+                image.src = imageUrl;
+                image.alt = t('chartTitle');
+                chartArea.appendChild(image);
             } catch (error) {
-                displayArea.innerHTML = `<p style="color: var(--danger-color);">${t('errorOccurred')}: ${error.message}</p>`;
+                chartArea.innerHTML = `<div class="notice">${t('failed')}: ${error.message}</div>`;
             }
-        });
+        };
 
-        document.getElementById('predictionForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-
-            predictionResultCard.style.display = 'block';
-            showLoading(resultContent);
-
-            let dateTime = document.getElementById('DATE_TIME').value;
-            dateTime = dateTime.replace('T', ' ') + ':00';
-
-            const moduleTemperatureValue = document.getElementById('MODULE_TEMPERATURE').value;
-            const formData = {
-                region_id: regionSelect.value,
-                DATE_TIME: dateTime,
-                AMBIENT_TEMPERATURE: parseFloat(document.getElementById('AMBIENT_TEMPERATURE').value),
-                RELATIVE_HUMIDITY: parseFloat(document.getElementById('RELATIVE_HUMIDITY').value),
-                WIND_SPEED: parseFloat(document.getElementById('WIND_SPEED').value),
-                IRRADIATION: parseFloat(document.getElementById('IRRADIATION').value),
-                storage_soc_percent: parseFloat(document.getElementById('STORAGE_SOC').value)
-            };
-
-            if (moduleTemperatureValue !== '') {
-                formData.MODULE_TEMPERATURE = parseFloat(moduleTemperatureValue);
-            }
-
-            try {
-                const response = await fetch('/predict_dispatch', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                });
-
-                const data = await response.json();
-
-                if (response.ok && data.status === 'success') {
-                    latestDispatchData = data;
-                    renderDispatchResult(data);
-
-                    // Scroll to result on mobile
-                    if (window.innerWidth < 768) {
-                        predictionResultCard.scrollIntoView({ behavior: 'smooth' });
-                    }
-
-                } else {
-                    throw new Error(data.detail || t('unknownError'));
-                }
-            } catch (error) {
-                resultContent.innerHTML = `<p style="color: var(--danger-color);">${t('predictionFailed')}: ${error.message}</p>`;
-            }
-        });
-
-        languageToggle.addEventListener('click', function () {
-            currentLang = currentLang === 'zh' ? 'en' : 'zh';
-            localStorage.setItem('dashboardLanguage', currentLang);
+        document.getElementById('languageToggle').addEventListener('click', () => {
+            lang = lang === 'zh' ? 'en' : 'zh';
+            localStorage.setItem('dashboardLanguage', lang);
             applyTranslations();
         });
 
         applyTranslations();
+        loadDashboard();
     </script>
-
 </body>
 
 </html>

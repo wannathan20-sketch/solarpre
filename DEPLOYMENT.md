@@ -1,10 +1,10 @@
 # Deployment Guide
 
-This project is ready to run as a Python web service. The deployable application is in the `solar/` directory.
+This project deploys as a Python/FastAPI web service. The deployable application is in the `solar/` directory.
 
 ## Local Run
 
-On macOS, XGBoost needs the OpenMP runtime:
+On macOS, XGBoost may need the OpenMP runtime:
 
 ```bash
 brew install libomp
@@ -30,8 +30,19 @@ Useful checks:
 
 ```text
 http://localhost:8000/health
+http://localhost:8000/eia/backtests
 http://localhost:8000/docs
 ```
+
+## EIA API Key
+
+Downloading fresh EIA data requires:
+
+```bash
+export EIA_API_KEY="your EIA API key"
+```
+
+The deployed service can read already-generated CSV/JSON files without the key. Configure `EIA_API_KEY` in Zeabur only if the deployment will download data at runtime.
 
 ## Zeabur Deployment
 
@@ -56,16 +67,12 @@ Steps:
 
 ## Post-Deployment Checklist
 
-- `/` loads the web UI.
-- `/health` returns `status: ok`.
-- `/regions` returns representative regional scenarios.
-- `/features` returns the saved model feature list.
-- `/predict_region` returns a numeric MW prediction for a sample payload.
-- `/plot/timeseries` returns a PNG chart.
-- `/plot/heatmap` returns a PNG chart.
+- `/` loads the EIA backtesting dashboard.
+- `/health` returns `mode: eia_real_grid_backtest`.
+- `/eia/backtests` returns the 2025/2026 EIA experiment summaries.
+- `/plot/eia_backtest?period=2025&target=net_load` returns a PNG chart after prediction files are generated.
 
 ## Notes
 
 - Zeabur injects the `PORT` environment variable at runtime; the start command uses it directly.
-- The CSV files and model artifact are included for demo convenience.
-- For a larger production deployment, move data/model artifacts to object storage and load them at startup.
+- Keep large generated EIA data files in Release assets, object storage, or data versioning if the repository becomes too large.
