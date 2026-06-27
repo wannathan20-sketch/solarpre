@@ -257,9 +257,10 @@
                 available: '已生成',
                 unavailable: '等待数据生成',
                 target: '目标',
-                mape: 'MAPE',
-                mae: 'MAE',
-                rmse: 'RMSE',
+                modelMape: '模型 MAPE',
+                previousDayMape: '昨日同小时 MAPE',
+                previousWeekMape: '上周同小时 MAPE',
+                eiaForecastMape: 'EIA预测 MAPE',
                 load: '负荷',
                 solar: '太阳能',
                 wind: '风电',
@@ -283,9 +284,10 @@
                 available: 'Generated',
                 unavailable: 'Waiting for data',
                 target: 'Target',
-                mape: 'MAPE',
-                mae: 'MAE',
-                rmse: 'RMSE',
+                modelMape: 'Model MAPE',
+                previousDayMape: 'Previous-Day MAPE',
+                previousWeekMape: 'Previous-Week MAPE',
+                eiaForecastMape: 'EIA Forecast MAPE',
                 load: 'Load',
                 solar: 'Solar',
                 wind: 'Wind',
@@ -324,18 +326,23 @@
 
         function targetRows(targets) {
             const rows = [
-                [t('load'), targets?.load?.model],
-                [t('solar'), targets?.solar?.model],
-                [`${t('solar')} > 100 MW`, targets?.solar?.active_generation_model],
-                [t('wind'), targets?.wind?.model],
-                [t('netLoad'), targets?.net_load?.model],
+                [t('load'), targets?.load],
+                [t('solar'), targets?.solar],
+                [`${t('solar')} > 100 MW`, {
+                    model: targets?.solar?.active_generation_model,
+                    previous_day_baseline: targets?.solar?.active_generation_previous_day_baseline,
+                    previous_week_baseline: targets?.solar?.active_generation_previous_week_baseline,
+                }],
+                [t('wind'), targets?.wind],
+                [t('netLoad'), targets?.net_load],
             ];
-            return rows.map(([label, metric]) => `
+            return rows.map(([label, item]) => `
                 <tr>
                     <td>${label}</td>
-                    <td>${metricValue(metric?.mape_percent, '%')}</td>
-                    <td>${metricValue(metric?.mae, ' MW')}</td>
-                    <td>${metricValue(metric?.rmse, ' MW')}</td>
+                    <td>${metricValue(item?.model?.mape_percent, '%')}</td>
+                    <td>${metricValue(item?.previous_day_baseline?.mape_percent, '%')}</td>
+                    <td>${metricValue(item?.previous_week_baseline?.mape_percent, '%')}</td>
+                    <td>${metricValue(item?.day_ahead_baseline?.mape_percent, '%')}</td>
                 </tr>
             `).join('');
         }
@@ -390,9 +397,10 @@
                     <table>
                         <tr>
                             <th>${t('target')}</th>
-                            <th>${t('mape')}</th>
-                            <th>${t('mae')}</th>
-                            <th>${t('rmse')}</th>
+                            <th>${t('modelMape')}</th>
+                            <th>${t('previousDayMape')}</th>
+                            <th>${t('previousWeekMape')}</th>
+                            <th>${t('eiaForecastMape')}</th>
                         </tr>
                         ${targetRows(caseItem.targets)}
                     </table>

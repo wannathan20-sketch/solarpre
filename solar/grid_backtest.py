@@ -13,6 +13,10 @@ BASE_DIR = Path(__file__).resolve().parent
 TARGETS = ["LOAD_MW", "SOLAR_MW", "WIND_MW"]
 FORECAST_FEATURES = ["LOAD_FORECAST_MW", "SOLAR_FORECAST_MW", "WIND_FORECAST_MW"]
 CALENDAR_FEATURES = ["HOUR", "MONTH", "DAY_OF_WEEK", "IS_WEEKEND", "SEASON"]
+LAG_BASELINES = {
+    "previous_day_baseline": ("PREVIOUS_DAY", pd.Timedelta(hours=24)),
+    "previous_week_baseline": ("PREVIOUS_WEEK", pd.Timedelta(hours=168)),
+}
 
 
 def parse_date(value):
@@ -33,6 +37,8 @@ def add_features(data):
     for column in FORECAST_FEATURES:
         if column not in frame.columns:
             frame[column] = np.nan
+    if "NET_LOAD_MW" not in frame.columns and {"LOAD_MW", "SOLAR_MW", "WIND_MW"}.issubset(frame.columns):
+        frame["NET_LOAD_MW"] = frame["LOAD_MW"] - frame["SOLAR_MW"].fillna(0.0) - frame["WIND_MW"].fillna(0.0)
     return frame.sort_values("DATE_TIME_LOCAL")
 
 
@@ -88,6 +94,31 @@ def metrics_for_active_generation(y_true, y_pred, minimum_mw=100.0):
     return result
 
 
+def add_lag_baseline_columns(output, prepared, target):
+    if target not in prepared.columns:
+        return output
+
+    lookup = prepared[["DATE_TIME_LOCAL", target]].dropna().drop_duplicates("DATE_TIME_LOCAL")
+    lookup = lookup.set_index("DATE_TIME_LOCAL")[target]
+
+    for _, (column_label, offset) in LAG_BASELINES.items():
+        baseline_col = f"BASELINE_{column_label}_{target}"
+        output[baseline_col] = output["DATE_TIME_LOCAL"].map(lambda timestamp: lookup.get(timestamp - offset, np.nan))
+    return output
+
+
+def lag_baseline_metrics(actual_rows, output, target):
+    result = {}
+    for metric_key, (column_label, _) in LAG_BASELINES.items():
+        baseline_col = f"BASELINE_{column_label}_{target}"
+        if baseline_col not in output.columns:
+            continue
+        metric = metrics(actual_rows[target].values, output.loc[actual_rows.index, baseline_col].values)
+        if metric is not None:
+            result[metric_key] = metric
+    return result
+
+
 def train_one_model(train_data, features, target):
     frame = clean_model_frame(train_data, features, target)
     if len(frame) < 24:
@@ -140,6 +171,7 @@ def build_predictions(data, train_start, train_end, predict_start, predict_end):
         model, train_rows = train_one_model(train_data, features, target)
         pred_col = f"PREDICTED_{target}"
         output[pred_col] = model.predict(prediction_frame[features])
+        output = add_lag_baseline_columns(output, prepared, target)
 
         if target in prediction_frame.columns:
             output[target] = prediction_frame[target].values
@@ -150,11 +182,21 @@ def build_predictions(data, train_start, train_end, predict_start, predict_end):
                     "actual_rows": int(len(actual_rows)),
                     "model": metrics(actual_rows[target].values, output.loc[actual_rows.index, pred_col].values),
                 }
+                report["targets"][target].update(lag_baseline_metrics(actual_rows, output, target))
                 if target == "SOLAR_MW":
                     report["targets"][target]["active_generation_model"] = metrics_for_active_generation(
                         actual_rows[target].values,
                         output.loc[actual_rows.index, pred_col].values,
                     )
+                    for metric_key, (column_label, _) in LAG_BASELINES.items():
+                        baseline_col = f"BASELINE_{column_label}_{target}"
+                        if baseline_col in output.columns:
+                            active_metric = metrics_for_active_generation(
+                                actual_rows[target].values,
+                                output.loc[actual_rows.index, baseline_col].values,
+                            )
+                            if active_metric is not None:
+                                report["targets"][target][f"active_generation_{metric_key}"] = active_metric
 
                 forecast_col = target.replace("_MW", "_FORECAST_MW")
                 if forecast_col in actual_rows.columns and actual_rows[forecast_col].notna().any():
@@ -180,6 +222,7 @@ def build_predictions(data, train_start, train_end, predict_start, predict_end):
         )
     if {"LOAD_MW", "SOLAR_MW", "WIND_MW"}.issubset(output.columns):
         output["NET_LOAD_MW"] = output["LOAD_MW"] - output["SOLAR_MW"] - output["WIND_MW"]
+        output = add_lag_baseline_columns(output, prepared, "NET_LOAD_MW")
         net_load_metric_rows = output[["NET_LOAD_MW", "PREDICTED_NET_LOAD_MW"]].dropna()
         report["targets"]["NET_LOAD_MW"] = {
             "actual_rows": int(len(net_load_metric_rows)),
@@ -187,6 +230,8 @@ def build_predictions(data, train_start, train_end, predict_start, predict_end):
             if "PREDICTED_NET_LOAD_MW" in output.columns and not net_load_metric_rows.empty
             else None,
         }
+        if not net_load_metric_rows.empty:
+            report["targets"]["NET_LOAD_MW"].update(lag_baseline_metrics(net_load_metric_rows, output, "NET_LOAD_MW"))
 
     return output, report
 

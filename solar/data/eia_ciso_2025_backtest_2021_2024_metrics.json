@@ -20,6 +20,16 @@
         "rmse": 1800.2512206615456,
         "mape_percent": 4.842930432714003
       },
+      "previous_day_baseline": {
+        "mae": 1248.4095500459136,
+        "rmse": 1749.576783339016,
+        "mape_percent": 4.892692850801763
+      },
+      "previous_week_baseline": {
+        "mae": 1561.698691460055,
+        "rmse": 2226.415970524431,
+        "mape_percent": 5.860643348253113
+      },
       "day_ahead_baseline": {
         "mae": 2098.318181818182,
         "rmse": 2924.438148301568,
@@ -34,10 +44,34 @@
         "rmse": 3026.092254379738,
         "mape_percent": 661.5096308029274
       },
+      "previous_day_baseline": {
+        "mae": 644.4788797061524,
+        "rmse": 1435.093499368029,
+        "mape_percent": 73.00234088241618
+      },
+      "previous_week_baseline": {
+        "mae": 883.9564967860423,
+        "rmse": 1834.3820001376032,
+        "mape_percent": 98.14302066040305
+      },
       "active_generation_model": {
         "mae": 3559.341980083107,
         "rmse": 4161.281265167672,
         "mape_percent": 77.12681219960686,
+        "minimum_actual_mw": 100.0,
+        "rows": 4516
+      },
+      "active_generation_previous_day_baseline": {
+        "mae": 1220.0312223206377,
+        "rmse": 1984.0001829851303,
+        "mape_percent": 18.442616596524385,
+        "minimum_actual_mw": 100.0,
+        "rows": 4516
+      },
+      "active_generation_previous_week_baseline": {
+        "mae": 1674.827502214349,
+        "rmse": 2536.009999957582,
+        "mape_percent": 29.106339516361963,
         "minimum_actual_mw": 100.0,
         "rows": 4516
       }
@@ -49,6 +83,16 @@
         "mae": 910.4284141337357,
         "rmse": 1125.0527717159487,
         "mape_percent": 66.01413026889037
+      },
+      "previous_day_baseline": {
+        "mae": 930.5711662075298,
+        "rmse": 1238.7085932049176,
+        "mape_percent": 65.03639771776531
+      },
+      "previous_week_baseline": {
+        "mae": 1197.4209136822774,
+        "rmse": 1529.0596989707526,
+        "mape_percent": 92.7506790413571
       }
     },
     "NET_LOAD_MW": {
@@ -57,6 +101,16 @@
         "mae": 1945.1056993552804,
         "rmse": 2808.0552937100606,
         "mape_percent": 16.377462868666683
+      },
+      "previous_day_baseline": {
+        "mae": 1705.0397153351698,
+        "rmse": 2343.750951514958,
+        "mape_percent": 13.24769176879353
+      },
+      "previous_week_baseline": {
+        "mae": 2444.2879935720844,
+        "rmse": 3381.655476206389,
+        "mape_percent": 18.25068793631283
       }
     }
   }

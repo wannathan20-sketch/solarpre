@@ -92,6 +92,17 @@ def target_metric(metrics_data, target, metric_key="model"):
     }
 
 
+def target_summary(metrics_data, target, label, label_zh):
+    return {
+        "label": label,
+        "label_zh": label_zh,
+        "model": target_metric(metrics_data, target),
+        "previous_day_baseline": target_metric(metrics_data, target, "previous_day_baseline"),
+        "previous_week_baseline": target_metric(metrics_data, target, "previous_week_baseline"),
+        "day_ahead_baseline": target_metric(metrics_data, target, "day_ahead_baseline"),
+    }
+
+
 def build_eia_case_summary(case_id, case):
     metrics_data = read_json_file(case["metrics_path"])
     if metrics_data is None:
@@ -117,27 +128,23 @@ def build_eia_case_summary(case_id, case):
         "predictions": summarize_time_series(case["prediction_path"]),
         "features": metrics_data.get("features", []),
         "targets": {
-            "load": {
-                "label": "Load",
-                "label_zh": "负荷",
-                "model": target_metric(metrics_data, "LOAD_MW"),
-            },
+            "load": target_summary(metrics_data, "LOAD_MW", "Load", "负荷"),
             "solar": {
-                "label": "Solar generation",
-                "label_zh": "太阳能发电",
-                "model": target_metric(metrics_data, "SOLAR_MW"),
+                **target_summary(metrics_data, "SOLAR_MW", "Solar generation", "太阳能发电"),
                 "active_generation_model": target_metric(metrics_data, "SOLAR_MW", "active_generation_model"),
+                "active_generation_previous_day_baseline": target_metric(
+                    metrics_data,
+                    "SOLAR_MW",
+                    "active_generation_previous_day_baseline",
+                ),
+                "active_generation_previous_week_baseline": target_metric(
+                    metrics_data,
+                    "SOLAR_MW",
+                    "active_generation_previous_week_baseline",
+                ),
             },
-            "wind": {
-                "label": "Wind generation",
-                "label_zh": "风电",
-                "model": target_metric(metrics_data, "WIND_MW"),
-            },
-            "net_load": {
-                "label": "Net load",
-                "label_zh": "净负荷",
-                "model": target_metric(metrics_data, "NET_LOAD_MW"),
-            },
+            "wind": target_summary(metrics_data, "WIND_MW", "Wind generation", "风电"),
+            "net_load": target_summary(metrics_data, "NET_LOAD_MW", "Net load", "净负荷"),
         },
     }
 

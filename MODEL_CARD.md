@@ -73,20 +73,22 @@ Metric JSON files:
 - `solar/data/eia_ciso_2025_backtest_2021_2024_metrics.json`
 - `solar/data/eia_ciso_2026_backtest_2021_2025_metrics.json`
 
-Current results:
+Current MAPE results against simple baselines:
 
-| Experiment | Target | MAE | RMSE | MAPE |
-| --- | --- | ---: | ---: | ---: |
-| 2021-2024 to 2025 | Load | 1260.85 MW | 1800.25 MW | 4.84% |
-| 2021-2024 to 2025 | Solar | 1953.18 MW | 3026.09 MW | 661.51% |
-| 2021-2024 to 2025 | Solar active generation | 3559.34 MW | 4161.28 MW | 77.13% |
-| 2021-2024 to 2025 | Wind | 910.43 MW | 1125.05 MW | 66.01% |
-| 2021-2024 to 2025 | Net load | 1945.11 MW | 2808.06 MW | 16.38% |
-| 2021-2025 to 2026 | Load | 1735.11 MW | 2473.94 MW | 6.84% |
-| 2021-2025 to 2026 | Solar | 1616.44 MW | 2712.63 MW | 352.53% |
-| 2021-2025 to 2026 | Solar active generation | 3019.29 MW | 3789.87 MW | 49.81% |
-| 2021-2025 to 2026 | Wind | 1058.31 MW | 1269.94 MW | 161.52% |
-| 2021-2025 to 2026 | Net load | 1616.93 MW | 2103.33 MW | 11.85% |
+| Experiment | Target | Model | Previous day | Previous week | EIA load forecast |
+| --- | --- | ---: | ---: | ---: | ---: |
+| 2021-2024 to 2025 | Load | 4.84% | 4.89% | 5.86% | 8.17% |
+| 2021-2024 to 2025 | Solar | 661.51% | 73.00% | 98.14% | - |
+| 2021-2024 to 2025 | Solar active generation | 77.13% | 18.44% | 29.11% | - |
+| 2021-2024 to 2025 | Wind | 66.01% | 65.04% | 92.75% | - |
+| 2021-2024 to 2025 | Net load | 16.38% | 13.25% | 18.25% | - |
+| 2021-2025 to 2026 | Load | 6.84% | 4.98% | 5.74% | 9.72% |
+| 2021-2025 to 2026 | Solar | 352.53% | 41.09% | 47.75% | - |
+| 2021-2025 to 2026 | Solar active generation | 49.81% | 20.59% | 32.84% | - |
+| 2021-2025 to 2026 | Wind | 161.52% | 95.88% | 113.86% | - |
+| 2021-2025 to 2026 | Net load | 11.85% | 12.31% | 15.73% | - |
+
+The load model improves on the EIA load forecast baseline. The renewable-generation models do not yet beat simple lag baselines, which is an important limitation rather than a hidden result.
 
 Full-period solar MAPE is inflated by night and near-zero generation hours, so active-generation metrics are reported separately for rows with actual solar above 100 MW.
 
