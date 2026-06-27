@@ -4,6 +4,14 @@
 
 项目后端使用 FastAPI，模型使用 XGBoost，前端是轻量级 HTML/CSS/JavaScript 仪表盘。部署目标为 Zeabur。
 
+## 当前状态
+
+- 已完成 Zeabur/Nixpacks 部署配置，生产入口为 `solar/app.py`。
+- 已完成 Pydantic 请求校验、API 契约测试和 GitHub Actions 自动测试。
+- 已完成区域光伏/负荷模型的时间切分评估，指标记录在 `solar/data/regional_timesplit_metrics.json`。
+- 已完成带 SOC、功率、容量和效率约束的储能削峰调度层。
+- 已完成 CAISO 公开真实数据回测，用于展示从气象数据、模型预测到真实电网数据验证的完整路径。
+
 ## 项目做什么
 
 - 使用 NASA POWER 小时级气象和太阳辐照数据，构建华南/西南代表城市的区域光伏发电数据集。
@@ -54,6 +62,7 @@ solar-main/
 |-- DEPLOYMENT.md                            # 部署说明
 |-- MODEL_CARD.md                            # 模型说明和限制
 |-- DESIGN_ITERATIONS.md                     # 前端设计迭代记录
+|-- .github/workflows/tests.yml              # GitHub Actions 自动测试
 |-- legacy/spring-boot-shell/                # 早期 Spring Boot 实验代码，当前不参与部署
 |-- .python-version                          # Zeabur/Nixpacks Python 版本提示
 |-- nixpacks.toml                            # Zeabur 部署配置
@@ -334,5 +343,5 @@ python3 solar/train_caiso_backtest.py \
 - 引入更贴近业务场景的公开负荷数据或授权实测数据。
 - 增加预测区间、不确定性评估和异常天气场景分析。
 - 将储能削峰逻辑继续升级为线性规划、模型预测控制或安全约束调度。
-- 增加 Pydantic 请求模型和自动化 API 测试。
 - 增加批量场景上传、预测结果导出和历史方案管理。
+- 将大体积数据和模型文件迁移到 Release、对象存储或数据版本管理工具，减轻 Git 仓库体积。

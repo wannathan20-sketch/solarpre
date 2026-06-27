@@ -1,0 +1,40 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  unittest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r solar/requirements.txt
+
+      - name: Run unit tests
+        run: python -m unittest discover -s tests
+
+      - name: Compile key Python modules
+        run: |
+          PYTHONPYCACHEPREFIX=/tmp/solar_pred_pycache python -m py_compile \
+            solar/app.py \
+            solar/schemas.py \
+            solar/storage_dispatch.py \
+            solar/evaluate_regional_timesplit.py \
+            tests/test_api_contract.py \
+            tests/test_storage_dispatch.py \
+            tests/test_time_split_evaluation.py
