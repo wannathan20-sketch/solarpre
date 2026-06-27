@@ -12,6 +12,7 @@ import pandas as pd
 from regions import REGION_BY_ID, SOUTHERN_GRID_REGIONS
 from schemas import LegacyPredictionRequest, RegionalPredictionRequest, payload_to_dict
 from solar_predictor import Solar_Predictor
+from storage_dispatch import optimize_storage_step
 
 BASE_DIR = Path(__file__).resolve().parent
 MPL_CONFIG_DIR = BASE_DIR / ".matplotlib"
@@ -282,75 +283,15 @@ def build_dispatch_assessment(solar_mw, load_mw, region):
 
 def build_storage_dispatch(solar_mw, load_mw, region, date_time, storage_soc_percent=50.0):
     timestamp = pd.to_datetime(date_time)
-    hour = int(timestamp.hour)
-    soc_percent = min(max(float(storage_soc_percent), 0.0), 100.0)
-
-    storage_power_mw = float(region["storage_power_mw"])
-    storage_energy_mwh = float(region["storage_energy_mwh"])
-    current_energy_mwh = storage_energy_mwh * soc_percent / 100.0
-    reserve_energy_mwh = storage_energy_mwh * 0.15
-    max_energy_mwh = storage_energy_mwh * 0.95
-
-    net_load_before = load_mw - solar_mw
-    solar_share = solar_mw / load_mw if load_mw > 0 else 0.0
-    load_ratio = load_mw / region["peak_load_mw"] if region["peak_load_mw"] > 0 else 0.0
-
-    available_discharge_mwh = max(current_energy_mwh - reserve_energy_mwh, 0.0)
-    available_charge_mwh = max(max_energy_mwh - current_energy_mwh, 0.0)
-
-    if net_load_before < 0:
-        action = "charge"
-        reason = "PV output exceeds load in this scenario. Charge storage first to reduce renewable curtailment risk."
-        requested_power = abs(net_load_before)
-    elif 10 <= hour <= 15 and solar_share >= 0.03 and available_charge_mwh > 0:
-        action = "charge"
-        reason = "Midday PV contribution is available. Charge storage to prepare for the evening net-load ramp."
-        requested_power = min(solar_mw * 0.25, storage_power_mw)
-    elif 18 <= hour <= 22 and load_ratio >= 0.62 and available_discharge_mwh > 0:
-        action = "discharge"
-        reason = "Evening or high-load period detected. Discharge storage to reduce peak net-load pressure."
-        requested_power = min(net_load_before * 0.08, storage_power_mw)
-    elif load_ratio >= 0.82 and available_discharge_mwh > 0:
-        action = "discharge"
-        reason = "Regional load is close to the demo peak-load level. Use storage for peak shaving and reserve support."
-        requested_power = min(net_load_before * 0.06, storage_power_mw)
-    else:
-        action = "standby"
-        reason = "No strong charge or discharge signal. Keep storage in standby and preserve flexibility for later ramps."
-        requested_power = 0.0
-
-    if action == "charge":
-        storage_power = min(requested_power, storage_power_mw, available_charge_mwh)
-        energy_delta_mwh = storage_power * 0.92
-        net_load_after = net_load_before + storage_power
-        curtailment_risk = "high" if net_load_before < 0 else ("medium" if solar_share >= 0.18 else "low")
-    elif action == "discharge":
-        storage_power = min(requested_power, storage_power_mw, available_discharge_mwh)
-        energy_delta_mwh = -storage_power / 0.92
-        net_load_after = max(net_load_before - storage_power, 0.0)
-        curtailment_risk = "low"
-    else:
-        storage_power = 0.0
-        energy_delta_mwh = 0.0
-        net_load_after = max(net_load_before, 0.0)
-        curtailment_risk = "low"
-
-    next_energy_mwh = min(max(current_energy_mwh + energy_delta_mwh, 0.0), storage_energy_mwh)
-    next_soc_percent = next_energy_mwh / storage_energy_mwh * 100.0 if storage_energy_mwh > 0 else 0.0
-    peak_shaving_mw = max(net_load_before - net_load_after, 0.0)
-
-    return {
-        "action": action,
-        "storage_power_mw": storage_power,
-        "storage_energy_mwh": storage_energy_mwh,
-        "current_soc_percent": soc_percent,
-        "next_soc_percent": next_soc_percent,
-        "net_load_before_mw": max(net_load_before, 0.0),
-        "net_load_after_storage_mw": net_load_after,
-        "peak_shaving_mw": peak_shaving_mw,
-        "curtailment_risk": curtailment_risk,
-        "reason": reason,
-    }
+    return optimize_storage_step(
+        solar_mw=solar_mw,
+        load_mw=load_mw,
+        storage_power_mw=region["storage_power_mw"],
+        storage_energy_mwh=region["storage_energy_mwh"],
+        peak_load_mw=region["peak_load_mw"],
+        hour=int(timestamp.hour),
+        storage_soc_percent=storage_soc_percent,
+    )
 
 
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")

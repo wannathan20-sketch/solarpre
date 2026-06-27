@@ -6,7 +6,7 @@ The project contains two recruiting-oriented baseline models for representative 
 
 - Stage 1 estimates hourly regional photovoltaic output.
 - Stage 2 estimates hourly regional load demand and supports PV-vs-load dispatch analysis.
-- Stage 3 uses rule-based storage dispatch logic to recommend charge, discharge, or standby actions.
+- Stage 3 uses constrained greedy storage dispatch logic to recommend charge, discharge, or standby actions.
 
 It is intended for portfolio demonstration, renewable forecasting discussion, generation-load-storage analytics, and grid dispatch interview storytelling.
 
@@ -17,7 +17,7 @@ It is intended for portfolio demonstration, renewable forecasting discussion, ge
 - Solar artifact: `solar/south_china_solar_model.joblib`
 - Load artifact: `solar/south_china_load_model.joblib`
 - Legacy artifact: `solar/solar_model.joblib`
-- Storage layer: deterministic heuristic logic in `solar/app.py`
+- Storage layer: constrained greedy dispatch logic in `solar/storage_dispatch.py`
 
 ## Data Source
 
@@ -111,7 +111,8 @@ The storage dispatch layer uses:
 - Region storage power rating in MW
 - Region storage energy capacity in MWh
 - Current SOC percentage
-- Hour-of-day and load-ratio heuristics
+- Hour-of-day and load-ratio objectives
+- SOC reserve, maximum SOC, power rating, energy capacity, and charge/discharge efficiency constraints
 
 ## Evaluation
 
@@ -133,7 +134,7 @@ Chronological regional time-split evaluation:
 
 The time-split report is saved in `solar/data/regional_timesplit_metrics.json`. These metrics are more honest than shuffled cross-validation for a forecasting workflow, but they still evaluate formula-derived regional labels rather than measured utility data.
 
-The third-stage storage layer is not evaluated as a learned model. It is an explainable decision rule intended to demonstrate how PV and load predictions can feed into storage dispatch assistance.
+The third-stage storage layer is not evaluated as a learned model. It is an explainable constrained dispatch helper intended to demonstrate how PV and load predictions can feed into storage charge/discharge decisions while respecting power rating, energy capacity, SOC reserve, maximum SOC, and charge/discharge efficiency.
 
 ## Limitations
 
